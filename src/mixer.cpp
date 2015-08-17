@@ -18,22 +18,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <dark/mixer_manager.hpp>
+#include <dark/configuration.hpp>
+#include <dark/mixer.hpp>
 
 using namespace dark;
 
-mixer_manager::mixer_manager(stack_impl & owner)
+mixer::mixer(stack_impl & owner)
     : stack_impl_(owner)
 {
     // ...
 }
 
-void mixer_manager::start()
+void mixer::start()
 {
     // ...
 }
 
-void mixer_manager::stop()
+void mixer::stop()
 {
     // ...
 }
