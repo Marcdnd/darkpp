@@ -23,6 +23,7 @@
 
 namespace dark {
 
+    class mixer;
     class stack_impl;
     
     /**
@@ -50,7 +51,10 @@ namespace dark {
         
         private:
         
-            // ...
+            /** 
+             * The mixer.
+             */
+            std::shared_ptr<mixer> m_mixer;
         
         protected:
         

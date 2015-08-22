@@ -23,7 +23,7 @@
 using namespace dark;
 
 configuration::configuration()
-    : m_mixer_type(mixer_type_none)
+    : m_mixer_type(mixer::type_none)
 {
     // ...
 }

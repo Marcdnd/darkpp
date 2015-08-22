@@ -18,58 +18,50 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DARK_MIXER_HPP
-#define DARK_MIXER_HPP
+#ifndef DARK_MIXER_HANDLER_HPP
+#define DARK_MIXER_HANDLER_HPP
+
+#include <coin/mixer.hpp>
 
 namespace dark {
 
-    class mixer_tcp_acceptor;
     class stack_impl;
     
     /**
-     * Implements a mixer.
+     * Implements a mixer handler (base class).
      */
-    class mixer
+    class mixer_handler
     {
         public:
-        
-            /**
-             * The mixer types.
-             */
-            typedef enum type_s
-            {
-                type_none,
-                type_cj01,
-            } type_t;
         
             /**
              * Constructor
              * @param owner The stack_impl.
              */
-            explicit mixer(stack_impl & owner);
+            explicit mixer_handler(stack_impl & owner);
         
             /**
              * Starts
-             * @param type The type_t.
              */
-            void start(const type_t & type);
+            virtual void start() = 0;
         
             /**
              * Stops
              */
-            void stop();
+            virtual void stop() = 0;
+        
+            /**
+             * Performs mixing.
+             */
+            template <class T1, class T2>
+            virtual bool mix(T1 & t1, T2 & t2) = 0;
         
         private:
         
             /**
-             * The type.
+             * The mixer::type.
              */
-            type_t m_type;
-        
-            /** 
-             * The mixer_tcp_acceptor.
-             */
-            std::shared_ptr<mixer_tcp_acceptor> m_mixer_tcp_acceptor;
+            mixer::type_t m_type;
         
         protected:
         
@@ -81,4 +73,4 @@ namespace dark {
     
 } // namespace dark
 
-#endif // DARK_MIXER_HPP
+#endif // DARK_MIXER_HANDLER_HPP

@@ -21,6 +21,8 @@
 #ifndef DARK_CONFIGURATION_HPP
 #define DARK_CONFIGURATION_HPP
 
+#include <coin/mixer.hpp>
+
 namespace dark {
 
     /**
@@ -39,22 +41,13 @@ namespace dark {
              * The singleton accessor.
              */
             static configuration & instance();
-
-            /**
-             * The mixer types.
-             */
-            typedef enum mixer_type_s
-            {
-                mixer_type_none,
-                mixer_type_cj01,
-            } mixer_type_t;
         
         private:
         
             /**
              * The mixer type.
              */
-            mixer_type_t m_mixer_type;
+            mixer::type_t m_mixer_type;
         
         protected:
         

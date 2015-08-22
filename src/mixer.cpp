@@ -18,20 +18,47 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdexcept>
+
 #include <dark/configuration.hpp>
 #include <dark/mixer.hpp>
+#include <dark/mixer_tcp_acceptor.hpp>
 
 using namespace dark;
 
 mixer::mixer(stack_impl & owner)
-    : stack_impl_(owner)
+    : m_type(type_none)
+    , stack_impl_(owner)
 {
     // ...
 }
 
-void mixer::start()
+void mixer::start(const mixer::type_t & type)
 {
-    // ...
+    /**
+     * Allocate the handler per type.
+     */
+    if (type == mixer::type_cj01)
+    {
+        /**
+         * Allocate the mixer_tcp_acceptor.
+         */
+        m_mixer_tcp_acceptor = std::make_shared<mixer_tcp_acceptor> (
+            stack_impl_.io_service()
+        );
+    }
+    else
+    {
+        throw std::runtime_error("invalid type");
+    }
+    
+    /**
+     * Start the mixer_tcp_acceptor.
+     */
+    if (m_mixer_tcp_acceptor)
+    {
+        m_mixer_tcp_acceptor->start(type);
+    }
 }
 
 void mixer::stop()
