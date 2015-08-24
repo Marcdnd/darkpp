@@ -21,7 +21,7 @@
 #ifndef DARK_CONFIGURATION_HPP
 #define DARK_CONFIGURATION_HPP
 
-#include <coin/mixer.hpp>
+#include <dark/mixer.hpp>
 
 namespace dark {
 

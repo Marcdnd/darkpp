@@ -22,7 +22,7 @@
 
 #include <dark/configuration.hpp>
 #include <dark/mixer.hpp>
-#include <dark/mixer_tcp_acceptor.hpp>
+#include <dark/tcp_acceptor.hpp>
 
 using namespace dark;
 
@@ -33,18 +33,23 @@ mixer::mixer(stack_impl & owner)
     // ...
 }
 
-void mixer::start(const mixer::type_t & type)
+void mixer::start(const mixer::type_t & type, const std::uint16_t & port)
 {
+    /**
+     * Set the type.
+     */
+    m_type = type;
+    
     /**
      * Allocate the handler per type.
      */
-    if (type == mixer::type_cj01)
+    if (m_type == mixer::type_cj01)
     {
         /**
-         * Allocate the mixer_tcp_acceptor.
+         * Allocate the tcp_acceptor.
          */
-        m_mixer_tcp_acceptor = std::make_shared<mixer_tcp_acceptor> (
-            stack_impl_.io_service()
+        m_tcp_acceptor = std::make_shared<tcp_acceptor> (
+            stack_impl_.io_service(), stack_impl_.strand()
         );
     }
     else
@@ -53,11 +58,11 @@ void mixer::start(const mixer::type_t & type)
     }
     
     /**
-     * Start the mixer_tcp_acceptor.
+     * Start the tcp_acceptor.
      */
-    if (m_mixer_tcp_acceptor)
+    if (m_tcp_acceptor)
     {
-        m_mixer_tcp_acceptor->start(type);
+        m_tcp_acceptor->start(port));
     }
 }
 

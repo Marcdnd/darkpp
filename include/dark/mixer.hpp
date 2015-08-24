@@ -23,8 +23,8 @@
 
 namespace dark {
 
-    class mixer_tcp_acceptor;
     class stack_impl;
+    class tcp_acceptor;
     
     /**
      * Implements a mixer.
@@ -51,8 +51,9 @@ namespace dark {
             /**
              * Starts
              * @param type The type_t.
+             * @param port The port.
              */
-            void start(const type_t & type);
+            void start(const type_t & type, const std::uint16_t & port);
         
             /**
              * Stops
@@ -67,9 +68,9 @@ namespace dark {
             type_t m_type;
         
             /** 
-             * The mixer_tcp_acceptor.
+             * The class tcp_acceptor;.
              */
-            std::shared_ptr<mixer_tcp_acceptor> m_mixer_tcp_acceptor;
+            std::shared_ptr<tcp_acceptor> m_tcp_acceptor;
         
         protected:
         

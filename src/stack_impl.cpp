@@ -28,8 +28,8 @@
 using namespace dark;
 
 stack_impl::stack_impl(dark::stack & owner)
-    : stack_(owner)
-    , strand_(m_io_service)
+    : m_strand(m_io_service)
+    , stack_(owner)
 {
     // ...
 }

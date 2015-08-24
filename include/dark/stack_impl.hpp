@@ -64,6 +64,11 @@ namespace dark {
             boost::asio::io_service & io_service();
         
             /**
+             * The boost::asio::strand.
+             */
+            boost::asio::strand & strand();
+        
+            /**
              * The mixer_manager.
              */
             std::shared_ptr<mixer_manager> & get_mixer_manager();
@@ -79,6 +84,11 @@ namespace dark {
              * The boost::asio::io_service.
              */
             boost::asio::io_service m_io_service;
+        
+            /**
+             * The boost::asio::strand.
+             */
+            boost::asio::strand m_strand;
         
         protected:
 
@@ -99,11 +109,6 @@ namespace dark {
              * The stack.
              */
             dark::stack & stack_;
-        
-            /**
-             * The boost::asio::strand.
-             */
-            boost::asio::strand strand_;
         
             /**
              * The boost::asio::io_service::work.

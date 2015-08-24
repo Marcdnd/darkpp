@@ -21,8 +21,8 @@
 #ifndef DARK_MIXER_HANDLER_CJ01_HPP
 #define DARK_MIXER_HANDLER_CJ01_HPP
 
-#include <coin/mixer.hpp>
-#include <coin/mixer_handler.hpp>
+#include <dark/mixer.hpp>
+#include <dark/mixer_handler.hpp>
 
 namespace dark {
 
