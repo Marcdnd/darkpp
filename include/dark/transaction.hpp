@@ -18,66 +18,63 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DARK_MIXER_TCP_ACCEPTOR_HPP
-#define DARK_MIXER_TCP_ACCEPTOR_HPP
+#ifndef DARK_TRANSACTION_HPP
+#define DARK_TRANSACTION_HPP
 
-#include <boost/asio.hpp>
-
-#include <dark/mixer.hpp>
+#include <vector>
 
 namespace dark {
 
-    class stack_impl;
-    
     /**
-     * Implements a mixer_tcp_acceptor.
+     * Implements a transaction.
      */
-    class mixer_tcp_acceptor
+    class transaction
     {
         public:
         
             /**
-             * Constructor
-             * @param ios The boost::asio::io_service.
+             * An input.
              */
-            explicit mixer_tcp_acceptor(boost::asio::io_service & ios);
+            typedef struct input_s
+            {
+                // ...
+            } input_t;
         
             /**
-             * Starts
-             * @param type The type_t.
+             * An output.
              */
-            void start(const mixer::type_t & type);
+            typedef struct output_s
+            {
+                // ...
+            } output_t;
         
             /**
-             * Stops
+             * The inputs.
              */
-            void stop();
+            const std::vector<input_t> & inputs() const;
+        
+            /**
+             * The outputs.
+             */
+            const std::vector<output_t> & outputs() const;
         
         private:
         
             /**
-             * The type.
+             * The inputs.
              */
-            mixer::type_t m_type;
+            std::vector<input_t> m_inputs;
+        
+            /**
+             * The outputs.
+             */
+            std::vector<output_t> m_outputs;
         
         protected:
         
-            /**
-             * The boost::asio::io_service.
-             */
-            boost::asio::io_service & io_service_;
-        
-            /**
-             * The boost::asio::strand.
-             */
-            boost::asio::strand & strand_;
-        
-            /**
-             * The stack_impl.
-             */
-            stack_impl & stack_impl_;
+            // ...
     };
     
 } // namespace dark
 
-#endif // DARK_MIXER_TCP_ACCEPTOR_HPP
+#endif // DARK_TRANSACTION_HPP

@@ -62,6 +62,16 @@ void stack_impl::start(const std::map<std::string, std::string> & args)
      * Retain the thread.
      */
     threads_.push_back(thread);
+    
+    /**
+     * Allocate the mixer_manager.
+     */
+    m_mixer_manager.reset(new mixer_manager(*this));
+    
+    /**
+     * Start the mier manager.
+     */
+    m_mixer_manager->start();
 }
 
 void stack_impl::stop()

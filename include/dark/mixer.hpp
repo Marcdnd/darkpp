@@ -21,6 +21,9 @@
 #ifndef DARK_MIXER_HPP
 #define DARK_MIXER_HPP
 
+#include <cstdint>
+#include <memory>
+
 namespace dark {
 
     class stack_impl;

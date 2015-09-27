@@ -21,6 +21,8 @@
 #ifndef DARK_MIXER_MANAGER_HPP
 #define DARK_MIXER_MANAGER_HPP
 
+#include <memory>
+
 namespace dark {
 
     class mixer;

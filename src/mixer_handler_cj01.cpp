@@ -18,36 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <dark/mixer.hpp>
-#include <dark/mixer_manager.hpp>
+#include <dark/mixer_handler_cj01.hpp>
 
 using namespace dark;
 
-mixer_manager::mixer_manager(stack_impl & owner)
-    : stack_impl_(owner)
+bool mixer_handler_cj01::mix(
+    const std::vector<transaction> & txs, transaction & tx
+    )
 {
-    // ...
-}
-
-void mixer_manager::start()
-{
-    /**
-     * Allocate the mixer.
-     */
-    m_mixer.reset(new mixer(stack_impl_));
-    
-    /**
-     * Start the mixer (mixer::type_cj01).
-     */
-    m_mixer->start(mixer::type_cj01, 44444);
-}
-
-void mixer_manager::stop()
-{
-    if (m_mixer)
-    {
-        m_mixer->stop();
-    }
-    
-    m_mixer.reset();
+    return false;
 }

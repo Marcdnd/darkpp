@@ -22,6 +22,7 @@
 
 #include <dark/configuration.hpp>
 #include <dark/mixer.hpp>
+#include <dark/stack_impl.hpp>
 #include <dark/tcp_acceptor.hpp>
 
 using namespace dark;
@@ -62,11 +63,29 @@ void mixer::start(const mixer::type_t & type, const std::uint16_t & port)
      */
     if (m_tcp_acceptor)
     {
-        m_tcp_acceptor->start(port));
+        m_tcp_acceptor->set_on_accept(
+            [this] (std::shared_ptr<tcp_transport> t)
+            {
+                if (t)
+                {
+                    // :TODO:
+                }
+            }
+        );
+    
+        m_tcp_acceptor->open(port);
     }
 }
 
 void mixer::stop()
 {
-    // ...
+    /**
+     * Stop the tcp_acceptor.
+     */
+    if (m_tcp_acceptor)
+    {
+        m_tcp_acceptor->close();
+    }
+    
+    m_tcp_acceptor.reset();
 }

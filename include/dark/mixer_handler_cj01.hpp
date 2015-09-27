@@ -44,7 +44,7 @@ namespace dark {
             /**
              * Starts
              */
-            virtual void start(;
+            virtual void start();
         
             /**
              * Stops
@@ -54,11 +54,9 @@ namespace dark {
             /**
              * Performs mixing.
              */
-            template <class T1, class T2>
-            virtual bool mix(T1 & t1, T2 & t2)
-            {
-                // ...
-            }
+            virtual bool mix(
+                const std::vector<transaction> & txs, transaction & tx
+            );
         
         private:
         

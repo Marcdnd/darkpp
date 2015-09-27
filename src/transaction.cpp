@@ -18,36 +18,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <dark/mixer.hpp>
-#include <dark/mixer_manager.hpp>
+#include <dark/transaction.hpp>
 
 using namespace dark;
 
-mixer_manager::mixer_manager(stack_impl & owner)
-    : stack_impl_(owner)
+const std::vector<transaction::input_t> & transaction::inputs() const
 {
-    // ...
+    return m_inputs;
 }
 
-void mixer_manager::start()
+const std::vector<transaction::output_t> & transaction::outputs() const
 {
-    /**
-     * Allocate the mixer.
-     */
-    m_mixer.reset(new mixer(stack_impl_));
-    
-    /**
-     * Start the mixer (mixer::type_cj01).
-     */
-    m_mixer->start(mixer::type_cj01, 44444);
-}
-
-void mixer_manager::stop()
-{
-    if (m_mixer)
-    {
-        m_mixer->stop();
-    }
-    
-    m_mixer.reset();
+    return m_outputs;
 }
