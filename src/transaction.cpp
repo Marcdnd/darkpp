@@ -18,9 +18,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <ctime>
+
 #include <dark/transaction.hpp>
 
 using namespace dark;
+
+transaction::transaction()
+    : data_buffer()
+    , m_version(current_version)
+    , m_time(static_cast<std::uint32_t> (std::time(0)))
+    , m_time_lock(0)
+{
+    // ...
+}
+
+bool transaction::encode(data_buffer & buffer)
+{
+    return false;
+}
+
+bool transaction::decode(data_buffer & buffer)
+{
+    return false;
+}
 
 const std::vector<transaction::input_t> & transaction::inputs() const
 {

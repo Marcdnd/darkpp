@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <vector>
 
+#include <dark/data_buffer.hpp>
 #include <dark/script.hpp>
 #include <dark/sha256.hpp>
 
@@ -32,9 +33,19 @@ namespace dark {
     /**
      * Implements a transaction.
      */
-    class transaction
+    class transaction : public data_buffer
     {
         public:
+        
+            /**
+             * The current version.
+             */
+            enum { current_version = 1 };
+        
+            /**
+             * Constructor
+             */
+            transaction();
         
             /**
              * A point out.
@@ -93,6 +104,18 @@ namespace dark {
             } output_t;
         
             /**
+             * Encodes
+             * buffer The data_buffer.
+             */
+            bool encode(data_buffer & buffer);
+        
+            /**
+             * Decodes
+             * buffer The data_buffer.
+             */
+            bool decode(data_buffer & buffer);
+        
+            /**
              * The inputs.
              */
             const std::vector<input_t> & inputs() const;
@@ -105,6 +128,16 @@ namespace dark {
         private:
         
             /**
+             * The version.
+             */
+            std::uint32_t m_version;
+        
+            /**
+             * The time.
+             */
+            std::uint32_t m_time;
+        
+            /**
              * The inputs.
              */
             std::vector<input_t> m_inputs;
@@ -114,6 +147,11 @@ namespace dark {
              */
             std::vector<output_t> m_outputs;
         
+            /**
+             * The lock time.
+             */
+            std::uint32_t m_time_lock;
+            
         protected:
         
             // ...

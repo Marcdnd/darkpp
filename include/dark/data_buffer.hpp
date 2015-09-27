@@ -30,7 +30,13 @@ namespace dark {
     {
         public:
         
-            // ...
+            /**
+             * Constructor
+             */
+            data_buffer()
+            {
+                // ...
+            }
         
         private:
         
