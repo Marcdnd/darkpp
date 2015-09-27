@@ -21,7 +21,11 @@
 #ifndef DARK_TRANSACTION_HPP
 #define DARK_TRANSACTION_HPP
 
+#include <cstdint>
 #include <vector>
+
+#include <dark/script.hpp>
+#include <dark/sha256.hpp>
 
 namespace dark {
 
@@ -33,11 +37,42 @@ namespace dark {
         public:
         
             /**
+             * A point out.
+             */
+            typedef struct point_out_s
+            {
+                /**
+                 * The hash.
+                 */
+                sha256 hash;
+            
+                /**
+                 * The n.
+                 */
+                std::uint32_t n;
+                
+            } point_out_t;
+        
+            /**
              * An input.
              */
             typedef struct input_s
             {
-                // ...
+                /**
+                 * The previous out.
+                 */
+                point_out_t previous_out;
+                
+                /**
+                 * The script signature.
+                 */
+                script script_signature;
+                
+                /**
+                 * The sequence.
+                 */
+                std::uint32_t sequence;
+            
             } input_t;
         
             /**
@@ -45,7 +80,16 @@ namespace dark {
              */
             typedef struct output_s
             {
-                // ...
+                /**
+                 * The value.
+                 */
+                std::int64_t value;
+            
+                /**
+                 * The script public key.
+                 */
+                script script_public_key;
+                
             } output_t;
         
             /**
