@@ -1,9 +1,39 @@
-//
-//  whisper_manager..cpp
-//  DarkPP
-//
-//  Created by freedom on 9/30/15.
-//  Copyright (c) 2015 none. All rights reserved.
-//
+/*
+ * Copyright (c) 2013-2015 John Connor (BM-NC49AxAjcqVcF5jNPu85Rb8MJ2d9JqZt)
+ *
+ * This file is part of Dark++.
+ *
+ * Dark++ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License with
+ * additional permissions to the one published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version. For more information see LICENSE.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#include "whisper_manager..h"
+#include <dark/whisper.hpp>
+#include <dark/whisper_manager.hpp>
+
+using namespace dark;
+
+void whisper_manager::start()
+{
+
+}
+
+void whisper_manager::stop()
+{
+    for (auto & i : m_whispers)
+    {
+        i.second.clear();
+    }
+    
+    m_whispers.clear();
+}
