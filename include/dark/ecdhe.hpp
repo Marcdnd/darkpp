@@ -18,66 +18,77 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DARK_WHISPER_MANAGER_HPP
-#define DARK_WHISPER_MANAGER_HPP
+#ifndef DARK_ECDHE_HPP
+#define DARK_ECDHE_HPP
 
-#include <map>
+#include <cstdint>
 #include <string>
 #include <vector>
 
-#include <dark/ecdhe.hpp>
+#ifdef __cplusplus
+extern "C" {
+#include <dark/ecdhe.h>
+}
+#endif // __cplusplus
 
 namespace dark {
 
-    class stack_impl;
-    class whisper;
-    
     /**
-     * Implements a whisper manager.
+     * Implements Elliptic Curve Diffie–Hellman Exchange.
      */
-    class whisper_manager
+    class ecdhe
     {
         public:
         
             /**
              * Constructor
-             * @param owner The stack_impl.
              */
-            explicit whisper_manager(stack_impl & owner);
+            ecdhe();
         
             /**
-             * Starts
+             * Destructor
              */
-            void start();
+            ~ecdhe();
         
             /**
-             * Stops
+             * Returns the public key generating if needed.
              */
-            void stop();
+            const std::string & public_key();
+        
+            /**
+             * Derives a secret key from the remote peer's public key.
+             * @param peer_public_key The remote peer's public key.
+             */
+            std::vector<std::uint8_t> derive_secret_key(
+                const std::string & peer_public_key
+            );
+
+            /**
+             * Gets the EC_DHE.
+             */
+            EC_DHE * get_EC_DHE();
+        
+            /**
+             * Runs test case.
+             */
+            static int run_test();
         
         private:
         
             /**
-             * The ecdhe.
+             * The EC_DHE.
              */
-            ecdhe m_ecdhe;
+            EC_DHE * m_ecdhe;
         
             /**
-             * The whisper messages.
+             * The public key.
              */
-            std::map<
-                std::string,
-                std::vector<std::shared_ptr<whisper> > > m_whisper_messages
-            ;
+            std::string m_public_key;
         
         protected:
         
-            /**
-             * The stack_impl.
-             */
-            stack_impl & stack_impl_;
+            // ...
     };
-    
 } // namespace dark
 
-#endif // DARK_WHISPER_MANAGER_HPP
+#endif // DARK_ECDHE_HPP

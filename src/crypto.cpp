@@ -18,6 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <dark/ec_key.hpp>
+#include <dark/crypto.hpp>
 
 using namespace dark;

@@ -68,25 +68,25 @@ namespace dark {
             std::uint64_t m_flags;
         
             /**
+             * The public key (of the recipient).
+             */
+            std::vector<std::uint8_t> m_public_key_recipient;
+        
+            /**
              * The public key (of the sender).
              */
-            std::vector<std::uint8_t> m_public_key;
+            std::vector<std::uint8_t> m_public_key_sender;
         
             /**
-             * The cipher text.
+             * The text.
              */
-            std::vector<std::uint8_t> m_cipher_text;
-        
-            /**
-             * The plain text.
-             */
-            std::string m_plain_text;
+            std::string m_text;
         
             /**
              * The signature.
              */
             std::vector<std::uint8_t> m_signature;
-        
+            
             /**
              * The encoded query string.
              */

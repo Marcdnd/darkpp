@@ -18,18 +18,38 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DARK_EC_KEY_HPP
-#define DARK_EC_KEY_HPP
+#ifndef DARK_NETWORK_HPP
+#define DARK_NETWORK_HPP
 
-#include <cstdint>
-#include <vector>
-
-#include <openssl/ec.h>
-
-#include <dark/sha256.hpp>
+#include <string>
 
 namespace dark {
-    // ...
-}
+    
+    class network
+    {
+        public:
+        
+            /**
+             * URI decodes.
+             * @param val The value.
+             */
+            static std::string uri_decode(const std::string &);
+        
+            /**
+             * URI encodes.
+             * @param val The value.
+             */
+            static std::string uri_encode(const std::string &);
+        
+        private:
+        
+            // ...
+        
+        protected:
+        
+            // ...
+    };
+    
+} // namespace dark
 
-#endif // DARK_EC_KEY_HPP
+#endif // DARK_NETWORK_HPP

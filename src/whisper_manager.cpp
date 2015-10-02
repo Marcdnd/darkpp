@@ -18,6 +18,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
+
+#include <dark/logger.hpp>
 #include <dark/stack_impl.hpp>
 #include <dark/whisper_message.hpp>
 #include <dark/whisper_manager.hpp>
@@ -32,9 +35,11 @@ whisper_manager::whisper_manager(stack_impl & owner)
 
 void whisper_manager::start()
 {
-    /**
-     * :TODO: load key from disk or generate one.
-     */
+    auto public_key = m_ecdhe.public_key();
+    
+    log_info("Whisper manager generated public key = " << public_key << ".");
+    
+    assert(public_key.size());
 }
 
 void whisper_manager::stop()
