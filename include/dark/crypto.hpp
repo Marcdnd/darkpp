@@ -21,9 +21,41 @@
 #ifndef DARK_CRYPTO_HPP
 #define DARK_CRYPTO_HPP
 
+#include <string>
+
 namespace dark {
 
+    class crypto
+    {
+        public:
+        
+            /**
+             * Performs base64 encoding.
+             * @param buf
+             * @param len
+             */
+            static std::string base64_encode(
+                const char * buf, const std::size_t & len
+            );
 
+            /**
+             * Performs base64 decoding.
+             * @param buf
+             * @param len
+             */
+            static std::string base64_decode(
+                const char * buf, const std::size_t & len
+            );
+        
+        private:
+        
+            // ...
+        
+        protected:
+        
+            // ...
+    };
+    
 } // namespace dark
 
 #endif // DARK_CRYPTO_HPP
