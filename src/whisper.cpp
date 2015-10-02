@@ -21,3 +21,20 @@
 #include <dark/whisper.hpp>
 
 using namespace dark;
+
+whisper::whisper()
+{
+    // ...
+}
+
+whisper & whisper::instance()
+{
+    static whisper g_whisper;
+            
+    return g_whisper;
+}
+
+ecdhe & whisper::get_ecdhe()
+{
+    return m_ecdhe;
+}

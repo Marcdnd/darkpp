@@ -24,13 +24,13 @@ using namespace dark;
 
 bool whisper_message::encode()
 {
-    m_query_string = "tid=" + std::to_string(m_tid);
+    m_query_string = "id=" + std::to_string(m_tid);
     m_query_string = "timestamp=" + std::to_string(m_timestamp);
     m_query_string = "flags=" + std::to_string(m_flags);
-    //m_query_string = "recipient=" + base64_encode(m_public_key_recipient);
+    //m_query_string = "recipient=" + network::uri_encode(base64_encode(m_public_key_recipient)).substr(0, 12);
 
-    // m_query_string = "sender=" + base64_encode(m_public_key_sender);
-    // m_query_string = "text=" + base64_encode(ecdhe_encrypt(m_text));
+    // m_query_string = "sender=" + network::uri_encode(base64_encode(m_public_key_sender));
+    // m_query_string = "text=" + base64_encode(hc256_encrypt(m_text));
 
    // m_query_string = "signature=" + m_signature.to_string();
     

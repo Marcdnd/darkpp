@@ -25,12 +25,10 @@
 #include <string>
 #include <vector>
 
-#include <dark/ecdhe.hpp>
-
 namespace dark {
 
     class stack_impl;
-    class whisper;
+    class whisper_message;
     
     /**
      * Implements a whisper manager.
@@ -58,16 +56,11 @@ namespace dark {
         private:
         
             /**
-             * The ecdhe.
-             */
-            ecdhe m_ecdhe;
-        
-            /**
              * The whisper messages.
              */
             std::map<
                 std::string,
-                std::vector<std::shared_ptr<whisper> > > m_whisper_messages
+                std::vector<std::shared_ptr<whisper_message> > > m_whisper_messages
             ;
         
         protected:

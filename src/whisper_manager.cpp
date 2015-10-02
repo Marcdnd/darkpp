@@ -22,6 +22,7 @@
 
 #include <dark/logger.hpp>
 #include <dark/stack_impl.hpp>
+#include <dark/whisper.hpp>
 #include <dark/whisper_message.hpp>
 #include <dark/whisper_manager.hpp>
 
@@ -35,7 +36,7 @@ whisper_manager::whisper_manager(stack_impl & owner)
 
 void whisper_manager::start()
 {
-    auto public_key = m_ecdhe.public_key();
+    auto public_key = whisper::instance().get_ecdhe().public_key();
     
     log_info("Whisper manager generated public key = " << public_key << ".");
     

@@ -21,8 +21,40 @@
 #ifndef DARK_WHISPER_HPP
 #define DARK_WHISPER_HPP
 
+#include <dark/ecdhe.hpp>
+
 namespace dark {
-    // ...
+
+    class whisper
+    {
+        public:
+        
+            /**
+             * Constructor
+             */
+            whisper();
+        
+            /**
+             * The singleton accessor.
+             */
+            static whisper & instance();
+        
+            /**
+             * The ecdhe.
+             */
+            ecdhe & get_ecdhe();
+        
+        private:
+        
+            /**
+             * The ecdhe.
+             */
+            ecdhe m_ecdhe;
+        
+        protected:
+        
+            // ...
+    };
 }
 
 #endif // DARK_WHISPER_HPP
