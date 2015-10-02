@@ -18,11 +18,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DARK_WHISPER_HPP
-#define DARK_WHISPER_HPP
+#include <dark/whisper_message.hpp>
 
-namespace dark {
-    // ...
+using namespace dark;
+
+bool whisper_message::encode()
+{
+    m_query_string = "tid=" + std::to_string(m_tid);
+    m_query_string += "&_l=900";
+    
+    return true;
 }
 
-#endif // DARK_WHISPER_HPP
+bool whisper_message::decode()
+{
+    /**
+     * :TODO:
+     */
+     
+    return true;
+}
+
+const std::uint64_t & whisper_message::tid() const
+{
+    return m_tid;
+}

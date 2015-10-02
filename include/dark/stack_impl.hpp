@@ -31,6 +31,7 @@ namespace dark {
     
     class stack;
     class mixer_manager;
+    class whisper_manager;
     
     /**
      * The stack implementation.
@@ -79,6 +80,11 @@ namespace dark {
              * The mixer_manager.
              */
             std::shared_ptr<mixer_manager> m_mixer_manager;
+        
+            /**
+             * The whisper_manager.
+             */
+            std::shared_ptr<whisper_manager> m_whisper_manager;
         
             /**
              * The boost::asio::io_service.

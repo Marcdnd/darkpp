@@ -27,6 +27,7 @@
 
 namespace dark {
 
+    class stack_impl;
     class whisper;
     
     /**
@@ -35,6 +36,12 @@ namespace dark {
     class whisper_manager
     {
         public:
+        
+            /**
+             * Constructor
+             * @param owner The stack_impl.
+             */
+            explicit whisper_manager(stack_impl & owner);
         
             /**
              * Starts
@@ -49,15 +56,19 @@ namespace dark {
         private:
         
             /**
-             * The whispers.
+             * The whisper messages.
              */
             std::map<
-                std::string, std::vector<std::shared_ptr<whisper> > > m_whispers
+                std::string,
+                std::vector<std::shared_ptr<whisper> > > m_whisper_messages
             ;
         
         protected:
         
-            // ...
+            /**
+             * The stack_impl.
+             */
+            stack_impl & stack_impl_;
     };
     
 } // namespace dark

@@ -18,11 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DARK_WHISPER_HPP
-#define DARK_WHISPER_HPP
+#include <dark/ec_key.hpp>
 
-namespace dark {
-    // ...
-}
-
-#endif // DARK_WHISPER_HPP
+using namespace dark;

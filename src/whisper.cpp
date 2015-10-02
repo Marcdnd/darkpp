@@ -21,8 +21,3 @@
 #include <dark/whisper.hpp>
 
 using namespace dark;
-
-const std::uint64_t & whisper::tid() const
-{
-    return m_tid;
-}

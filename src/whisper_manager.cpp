@@ -18,22 +18,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <dark/whisper.hpp>
+#include <dark/stack_impl.hpp>
+#include <dark/whisper_message.hpp>
 #include <dark/whisper_manager.hpp>
 
 using namespace dark;
 
+whisper_manager::whisper_manager(stack_impl & owner)
+    : stack_impl_(owner)
+{
+    // ...
+}
+
 void whisper_manager::start()
 {
-
+    /**
+     * :TODO: load key from disk or generate one.
+     */
 }
 
 void whisper_manager::stop()
 {
-    for (auto & i : m_whispers)
+    for (auto & i : m_whisper_messages)
     {
         i.second.clear();
     }
     
-    m_whispers.clear();
+    m_whisper_messages.clear();
 }

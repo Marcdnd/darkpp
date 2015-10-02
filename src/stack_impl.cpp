@@ -24,6 +24,7 @@
 #include <dark/mixer_manager.hpp>
 #include <dark/stack.hpp>
 #include <dark/stack_impl.hpp>
+#include <dark/whisper_manager.hpp>
 
 using namespace dark;
 
@@ -40,6 +41,11 @@ void stack_impl::start(const std::map<std::string, std::string> & args)
      * Parse the command line arguments.
      */
     parse_command_line_args(args);
+    
+    /**
+     * Make non-const copy.
+     */
+    auto command_line_args = args;
     
     /**
      * Reset the boost::asio::io_service.
@@ -62,16 +68,31 @@ void stack_impl::start(const std::map<std::string, std::string> & args)
      * Retain the thread.
      */
     threads_.push_back(thread);
-    
-    /**
-     * Allocate the mixer_manager.
-     */
-    m_mixer_manager.reset(new mixer_manager(*this));
-    
-    /**
-     * Start the mier manager.
-     */
-    m_mixer_manager->start();
+
+    if (command_line_args["service"] == "mixer")
+    {
+        /**
+         * Allocate the mixer_manager.
+         */
+        m_mixer_manager.reset(new mixer_manager(*this));
+        
+        /**
+         * Start the mixer manager.
+         */
+        m_mixer_manager->start();
+    }
+    else if (command_line_args["service"] == "whisper")
+    {
+        /**
+         * Allocate the m_whisper_manager.
+         */
+        m_whisper_manager.reset(new whisper_manager(*this));
+        
+        /**
+         * Start the whisper manager.
+         */
+        m_whisper_manager->start();
+    }
 }
 
 void stack_impl::stop()
@@ -79,6 +100,11 @@ void stack_impl::stop()
     if (m_mixer_manager)
     {
         m_mixer_manager->stop();
+    }
+    
+    if (m_whisper_manager)
+    {
+        m_whisper_manager->stop();
     }
     
     /**
