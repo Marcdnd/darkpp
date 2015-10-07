@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
+
 #include <boost/algorithm/string.hpp>
 
 #include <dark/crypto.hpp>
@@ -27,6 +29,17 @@
 #include <dark/whisper_message.hpp>
 
 using namespace dark;
+
+whisper_message::whisper_message()
+{
+    // ...
+}
+
+whisper_message::whisper_message(const std::string & query_string)
+    : m_query_string(query_string)
+{
+    // ...
+}
 
 bool whisper_message::encode(const std::string & shared_secret)
 {
@@ -112,11 +125,22 @@ bool whisper_message::encode(const std::string & shared_secret)
 
 bool whisper_message::decode(const std::string & shared_secret)
 {
+    assert(m_query_string.size());
+    
     /**
      * :TODO:
      */
-     
-    return true;
+    std::map<std::string, std::string> pairs_all;
+    std::map<std::string, std::string> pairs_public;
+    
+    parse_query(m_query_string, pairs_all, pairs_public);
+    
+    if (pairs_all.size() > 0 && pairs_public.size() > 0)
+    {
+    
+    }
+    
+    return false;
 }
 
 const std::uint64_t & whisper_message::tid() const

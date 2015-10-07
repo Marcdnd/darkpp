@@ -167,7 +167,7 @@ int ecdhe::run_test()
     
     assert(shared_secret1.size() == 32);
     assert(shared_secret2.size() == 32);
-    assert(shared_secret2.size() == 32);
+    assert(shared_secret3.size() == 32);
     
     return 0;
 }

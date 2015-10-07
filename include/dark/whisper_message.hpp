@@ -37,6 +37,17 @@ namespace dark {
         public:
         
             /**
+             * Constructor
+             */
+            whisper_message();
+        
+            /**
+             * Constructor
+             * @param query_string The query string.
+             */
+            whisper_message(const std::string & query_string);
+        
+            /**
              * Encodes
              * @param shared_secret The shared secret.
              */
