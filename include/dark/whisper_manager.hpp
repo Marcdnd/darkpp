@@ -60,7 +60,8 @@ namespace dark {
              */
             std::map<
                 std::string,
-                std::vector<std::shared_ptr<whisper_message> > > m_whisper_messages
+                std::vector<std::shared_ptr<whisper_message> > >
+                m_whisper_messages
             ;
         
         protected:

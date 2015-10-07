@@ -18,11 +18,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DARK_WHISPER_HPP
-#define DARK_WHISPER_HPP
+#ifndef DARK_WHISPER_MESSAGE_HPP
+#define DARK_WHISPER_MESSAGE_HPP
 
 #include <cstdint>
 #include <ctime>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -37,13 +38,15 @@ namespace dark {
         
             /**
              * Encodes
+             * @param shared_secret The shared secret.
              */
-            bool encode();
+            bool encode(const std::string & shared_secret);
         
             /**
              * Decodes
+             * @param shared_secret The shared secret.
              */
-            bool decode();
+            bool decode(const std::string & shared_secret);
         
             /**
              * The transaction id (encoded in network byte order).
@@ -52,6 +55,18 @@ namespace dark {
         
         private:
         
+            /**
+             * Parses a query.
+             * @param val The value.
+             * @param pairs_all The pairs.
+             * @param pairs_public The public pairs.
+             */
+            void parse_query(
+                const std::string & val,
+                std::map<std::string, std::string> & pairs_all,
+                std::map<std::string, std::string> & pairs_public
+            );
+
             /**
              * The transaction id (encoded in network byte order).
              */
@@ -99,4 +114,4 @@ namespace dark {
     
 } // namespace dark
 
-#endif // DARK_WHISPER_HPP
+#endif // DARK_WHISPER_MESSAGE_HPP

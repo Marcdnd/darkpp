@@ -75,6 +75,74 @@ EC_DHE * ecdhe::get_EC_DHE()
     return m_ecdhe;
 }
 
+bool ecdhe::sign(
+    const std::uint8_t * buf, const std::size_t & len,
+    std::vector<std::uint8_t> & signature
+    )
+{
+    auto ec_key = EVP_PKEY_get1_EC_KEY(m_ecdhe->privkey);
+    
+    assert(ec_key);
+    
+    unsigned int size = ECDSA_size(ec_key);
+    
+    signature.resize(size);
+
+    if (
+        !ECDSA_sign(0, buf, static_cast<std::uint32_t> (len), &signature[0],
+        &size, ec_key)
+        )
+    {
+        signature.clear();
+        
+        return false;
+    }
+    
+    signature.resize(size);
+    
+    return true;
+}
+
+bool ecdhe::verify(
+    const std::uint8_t * buf, const std::size_t & len,
+    EC_KEY * ec_key, const std::vector<std::uint8_t> & signature
+    )
+{
+    bool ret = false;
+    
+    assert(ec_key);
+    
+    if (signature.size() > 0)
+    {
+        auto ptr_signature = &signature[0];
+        
+        ECDSA_SIG * ecdsa_sig = 0;
+        
+        if (
+            (ecdsa_sig = d2i_ECDSA_SIG(
+            0, &ptr_signature, signature.size())) != 0
+            )
+        {
+            std::uint8_t * pp = 0;
+            
+            auto len = i2d_ECDSA_SIG(ecdsa_sig, &pp);
+            
+            ECDSA_SIG_free(ecdsa_sig), ecdsa_sig = 0;
+            
+            if (pp && len > 0)
+            {
+                ret = ECDSA_verify(
+                    0, buf, len, pp, len, ec_key
+                ) == 1;
+                
+                OPENSSL_free(pp), pp = 0;
+            }
+        }
+    }
+    
+    return ret;
+}
+
 int ecdhe::run_test()
 {
     ecdhe ecdhe_a, ecdhe_b, ecdhe_c;
