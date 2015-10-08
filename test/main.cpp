@@ -26,8 +26,17 @@
 #include <dark/configuration.hpp>
 #include <dark/stack.hpp>
 
+#define USE_TEST_ECDHE 1
+
+#if (defined USE_TEST_ECDHE && USE_TEST_ECDHE)
+#include <dark/ecdhe.hpp>
+#endif // USE_TEST_ECDHE
+
 int main(int argc, const char * argv[])
 {
+#if (defined USE_TEST_ECDHE && USE_TEST_ECDHE)
+    return dark::ecdhe::run_test();
+#else
     std::map<std::string, std::string> args;
     
     for (auto i = 0; i < argc; i++)
@@ -64,6 +73,11 @@ int main(int argc, const char * argv[])
     dark::stack s;
     
     /**
+     * Set the service.
+     */
+    args["service"] = "whisper";
+    
+    /**
      * Start the dark::stack.
      */
     s.start(args);
@@ -76,7 +90,7 @@ int main(int argc, const char * argv[])
      * Stop the dark::stack.
      */
     s.stop();
-    
+#endif
     return 0;
 }
 

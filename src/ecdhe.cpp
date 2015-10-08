@@ -20,6 +20,14 @@
 
 #include <cassert>
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+#include <openssl/bio.h>
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+
 #include <dark/ecdhe.hpp>
 
 using namespace dark;
@@ -168,6 +176,48 @@ int ecdhe::run_test()
     assert(shared_secret1.size() == 32);
     assert(shared_secret2.size() == 32);
     assert(shared_secret3.size() == 32);
+    
+    /**
+     * Signatures
+     */
+    std::uint8_t buf[32];
+    
+    for (auto i = 0; i < sizeof(buf); i++)
+    {
+        buf[i] = i;
+    }
+    
+    std::vector<std::uint8_t> signature;
+    
+    auto success = ecdhe_a.sign(buf, sizeof(buf), signature);
+    
+    if (success)
+    {
+        auto mem_buf = BIO_new_mem_buf(
+            (void *)ecdhe_a.public_key().data(), ecdhe_a.public_key().size()
+        );
+        
+        #warning :TODO: free BIO_new_mem_buf???
+        
+        auto ec_key = PEM_read_bio_EC_PUBKEY(mem_buf, 0, 0, 0);
+        
+        EC_KEY_print_fp(stdout, ec_key, 2);
+
+        success = ecdhe_b.verify(buf, sizeof(buf), ec_key, signature);
+        
+        if (success)
+        {
+            printf("verify success\n");
+        }
+        else
+        {
+            printf("verify failed\n");
+        }
+    }
+    else
+    {
+        printf("sign failed\n");
+    }
     
     return 0;
 }

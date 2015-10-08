@@ -181,6 +181,11 @@ boost::asio::io_service & stack_impl::io_service()
     return m_io_service;
 }
 
+boost::asio::strand & stack_impl::strand()
+{
+    return m_strand;
+}
+
 std::shared_ptr<mixer_manager> & stack_impl::get_mixer_manager()
 {
     return m_mixer_manager;

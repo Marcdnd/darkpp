@@ -184,7 +184,7 @@ static char * EC_DHE_getPublicKey(EC_DHE * ec_dhe, int * public_key_len)
     }
 
     BIO * bp = BIO_new(BIO_s_mem());
-    
+
     if (1 != PEM_write_bio_PUBKEY(bp, ec_dhe->privkey))
     {
         EC_DHE_handleErrors("Could not write public key to memory");

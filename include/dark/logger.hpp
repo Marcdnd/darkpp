@@ -120,6 +120,7 @@ namespace dark {
 			        std::cerr << val.str() << std::endl;
 #endif // _UNICODE
 #else // Not Windows.
+                    std::cerr << val.str() << std::endl;
 #endif // defined _WIN32 || defined WIN32) || (defined _WIN64 || defined WIN64
 			    }
 			}
@@ -148,19 +149,19 @@ namespace dark {
         switch (severity) \
         { \
             case dark::logger::severity_debug: \
-                __ss << time_str << " database[DEBUG] - "; \
+                __ss << time_str << " dark[DEBUG] - "; \
             break; \
             case dark::logger::severity_error: \
-                __ss << time_str << " database[ERROR] - "; \
+                __ss << time_str << " dark[ERROR] - "; \
             break; \
             case dark::logger::severity_info: \
-                __ss << time_str << " database[INFO] - "; \
+                __ss << time_str << " dark[INFO] - "; \
             break; \
             case dark::logger::severity_warning: \
-                __ss << time_str << " database[WARNING] - "; \
+                __ss << time_str << " dark[WARNING] - "; \
             break; \
             default: \
-                __ss << std::ctime(&time_now) << " database[UNKNOWN] - "; \
+                __ss << std::ctime(&time_now) << " dark[UNKNOWN] - "; \
         } \
 		__ss << __FUNCTION__ << ": "; \
         __ss << strm; \

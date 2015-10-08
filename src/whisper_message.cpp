@@ -66,7 +66,7 @@ bool whisper_message::encode(const std::string & shared_secret)
         m_query_string +=
             "&recipient=" + network::uri_encode(crypto::base64_encode(
             reinterpret_cast<const char *> (&m_public_key_recipient[0]),
-            m_public_key_recipient.size())).substr(0, 8)
+            m_public_key_recipient.size()))
         ;
         
         /**
@@ -84,7 +84,7 @@ bool whisper_message::encode(const std::string & shared_secret)
          * Set the text.
          */
         m_query_string +=
-            "&sender=" + network::uri_encode(
+            "&text=" + network::uri_encode(
             crypto::base64_encode(m_text.data(), m_text.size()))
         ;
 
