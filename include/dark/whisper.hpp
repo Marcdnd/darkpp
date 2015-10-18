@@ -21,6 +21,11 @@
 #ifndef DARK_WHISPER_HPP
 #define DARK_WHISPER_HPP
 
+#include <ctime>
+#include <map>
+#include <mutex>
+#include <string>
+
 #include <dark/ecdhe.hpp>
 
 namespace dark {
@@ -44,12 +49,28 @@ namespace dark {
              */
             ecdhe & get_ecdhe();
         
+            /**
+             * The ecdhe shared secrets (mapped to public key).
+             */
+            std::map<std::string,
+                std::pair<std::time_t, std::vector<std::uint8_t> > >
+                & ecdhe_shared_secrets()
+            ;
+        
         private:
         
             /**
              * The ecdhe.
              */
             ecdhe m_ecdhe;
+        
+            /**
+             * The ecdhe shared secrets (mapped to public key).
+             */
+            std::map<std::string,
+                std::pair<std::time_t, std::vector<std::uint8_t> > >
+                m_ecdhe_shared_secrets
+            ;
         
         protected:
         

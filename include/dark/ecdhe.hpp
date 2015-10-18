@@ -88,12 +88,13 @@ namespace dark {
              * Verifies
              * @param buf The buffer.
              * @param len The length.
-             * @param ec_key The EC_KEY.
+             * @param public_key The public key.
              * @param signature The signature.
              */
-            bool verify(
+            static bool verify(
                 const std::uint8_t * buf, const std::size_t & len,
-                EC_KEY * ec_key, const std::vector<std::uint8_t> & signature
+                const std::vector<std::uint8_t> & public_key,
+                const std::vector<std::uint8_t> & signature
             );
 
         private:

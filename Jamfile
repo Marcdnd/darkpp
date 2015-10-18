@@ -35,9 +35,14 @@ if $(BOOST_ROOT)
 
 SOURCES =
 	configuration
+	mixer_handler_cj01
+	mixer_manager
+	mixer
 	stack_impl
 	stack
-	mixer_manager
+	tcp_acceptor
+	tcp_transport
+	transaction
 ;
 
 local usage-requirements = 

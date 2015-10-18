@@ -29,6 +29,8 @@
 
 namespace dark {
 
+    class ecdhe;
+    
     /**
      * Implements a whisper message.
      */
@@ -49,20 +51,53 @@ namespace dark {
         
             /**
              * Encodes
+             * @param ecdhe_ctx The ecdhe context.
              * @param shared_secret The shared secret.
              */
-            bool encode(const std::string & shared_secret);
+            bool encode(
+                ecdhe & ecdhe_ctx,
+                const std::vector<std::uint8_t> & shared_secret
+            );
         
             /**
              * Decodes
              * @param shared_secret The shared secret.
              */
-            bool decode(const std::string & shared_secret);
+            bool decode(const std::vector<std::uint8_t> & shared_secret);
         
             /**
-             * The transaction id (encoded in network byte order).
+             * The transaction id.
              */
-            const std::uint64_t & tid() const;
+            const std::uint32_t & tid() const;
+        
+            /**
+             * Sets the public key of the recipient.
+             * @param buf The buffer.
+             * @param len The length.
+             */
+            void set_public_key_recipient(
+                const char * buf, const std::size_t & len
+            );
+        
+            /**
+             * Sets the public key of the sender.
+             * @param buf The buffer.
+             * @param len The length.
+             */
+            void set_public_key_sender(
+                const char * buf, const std::size_t & len
+            );
+        
+            /**
+             * Sets the text.
+             * @pram val The value.
+             */
+            void set_text(const std::string & val);
+        
+            /**
+             * Runs test case.
+             */
+            static int run_test();
         
         private:
         
@@ -81,7 +116,7 @@ namespace dark {
             /**
              * The transaction id (encoded in network byte order).
              */
-            std::uint64_t m_tid;
+            std::uint32_t m_tid;
         
             /**
              * The timestamp (encoded in network byte order).
