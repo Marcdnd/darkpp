@@ -1,7 +1,9 @@
 /*
- * Copyright (c) 2008-2015 John Connor (BM-NC49AxAjcqVcF5jNPu85Rb8MJ2d9JqZt)
+ * Copyright (c) 2013-2015 John Connor (BM-NC49AxAjcqVcF5jNPu85Rb8MJ2d9JqZt)
  *
- * This is free software: you can redistribute it and/or modify
+ * This file is part of Dark++.
+ *
+ * Dark++ is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License with
  * additional permissions to the one published by the Free Software
  * Foundation, either version 3 of the License, or (at your option)
@@ -20,10 +22,10 @@
 #include <cstdint>
 #include <cstring>
 
-#include <database/hc256.hpp>
-#include <database/logger.hpp>
+#include <dark/hc256.hpp>
+#include <dark/logger.hpp>
 
-using namespace database;
+using namespace dark;
 
 hc256::hc256(
     const std::string & encrypt_key, const std::string & decrypt_key,

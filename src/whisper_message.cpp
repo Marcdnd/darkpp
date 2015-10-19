@@ -19,74 +19,164 @@
  */
 
 #include <cassert>
+#include <random>
 
 #include <boost/algorithm/string.hpp>
 
 #include <dark/crypto.hpp>
+#include <dark/ecdhe.hpp>
+#include <dark/hc256.hpp>
+#include <dark/logger.hpp>
 #include <dark/network.hpp>
 #include <dark/sha256.hpp>
 #include <dark/whisper.hpp>
 #include <dark/whisper_message.hpp>
+#include <dark/whisper_pow.hpp>
 
 using namespace dark;
 
 whisper_message::whisper_message()
+    : m_tid(0)
+    , m_timestamp(0)
+    , m_flags(0)
 {
     // ...
 }
 
 whisper_message::whisper_message(const std::string & query_string)
-    : m_query_string(query_string)
+    : m_tid(0)
+    , m_timestamp(0)
+    , m_flags(0)
+    , m_query_string(query_string)
 {
     // ...
 }
 
-bool whisper_message::encode(const std::string & shared_secret)
+bool whisper_message::encode(
+    ecdhe & ecdhe_ctx, const std::vector<std::uint8_t> & shared_secret
+    )
 {
     if (shared_secret.size() > 0)
     {
+        std::random_device rd;
+        std::mt19937_64 g(rd());
+        
+        std::uniform_int_distribution<std::uint32_t> dist(
+            0, std::numeric_limits<std::uint32_t>::max()
+        );
+        
+        m_tid = dist(g);
+        
+        log_debug("Whisper message is encoding id = " << m_tid);
+        
         /**
          * Set the id.
          */
         m_query_string = "id=" + std::to_string(m_tid);
+        
+        m_timestamp = std::time(0);
         
         /**
          * Set the timestamp.
          */
         m_query_string += "&timestamp=" + std::to_string(m_timestamp);
         
+        m_flags = 0;
+        
         /**
          * Set the flags.
          */
         m_query_string += "&flags=" + std::to_string(m_flags);
         
+        if (m_public_key_recipient.size() > 0)
+        {
+            /**
+             * Set the to.
+             */
+            m_query_string +="&to=" + sha256(&m_public_key_sender[0],
+                m_public_key_sender.size()).to_string()
+            ;
+        }
+        
+        if (m_public_key_sender.size() > 0)
+        {
+            /**
+             * Set the sender.
+             */
+            m_query_string +=
+                "&from=" + network::uri_encode(crypto::base64_encode(
+                reinterpret_cast<const char *> (&m_public_key_sender[0]),
+                m_public_key_sender.size()))
+            ;
+        }
+
+        auto shared_secret32 = sha256(
+            &shared_secret[0], shared_secret.size()
+        ).to_string().substr(0, 32);
+
         /**
-         * Set the recipient.
+         * Allocate the hc256 context.
          */
-        m_query_string +=
-            "&recipient=" + network::uri_encode(crypto::base64_encode(
-            reinterpret_cast<const char *> (&m_public_key_recipient[0]),
-            m_public_key_recipient.size()))
-        ;
+        hc256 ctx(
+            shared_secret32, shared_secret32,
+            "n5tH9JWEuZuA96wkA747jsp4JLvXDV8j"
+        );
         
         /**
-         * Set the sender.
+         * Encrypt the text.
          */
-        m_query_string +=
-            "&sender=" + network::uri_encode(crypto::base64_encode(
-            reinterpret_cast<const char *> (&m_public_key_sender[0]),
-            m_public_key_sender.size()))
-        ;
+        auto encrypted = ctx.encrypt(m_text);
 
-        // :TODO: encrypt w/ hc256
-
+        if (encrypted.size() > 0)
+        {
+            /**
+             * Set the text.
+             */
+            m_query_string +=
+                "&text=" + network::uri_encode(
+                crypto::base64_encode(encrypted.data(), encrypted.size()))
+            ;
+        }
+        
         /**
-         * Set the text.
+         * Allocate the whisper_pow.
          */
-        m_query_string +=
-            "&text=" + network::uri_encode(
-            crypto::base64_encode(m_text.data(), m_text.size()))
+        whisper_pow pow;
+        
+        /**
+         * Copy the query string into the nonce buffer for target calculation.
+         */
+        std::vector<std::uint8_t> nonce_buf(
+            m_query_string.begin(), m_query_string.end()
+        );
+        
+        /**
+         * Calculate the target.
+         */
+        auto target =
+            std::numeric_limits<std::uint64_t>::max() / (
+            (nonce_buf.size() + whisper_pow::extra_work +
+            sizeof(std::uint64_t)) * whisper_pow::nonce_fudge)
         ;
+        
+        log_debug("Whisper message generated target = " << target << ".");
+        
+        /**
+         * Generate the nonce.
+         */
+        auto nonce = pow.generate_nonce(nonce_buf, target);
+        
+        log_debug("Whisper message generated nonce = " << nonce << ".");
+        
+        /**
+         * Set the nonce.
+         */
+        m_query_string += "&nonce=" + std::to_string(nonce);
+        
+        /**
+         * Set the lifetime.
+         */
+        m_query_string += "&_l=1800";
 
         /**
          * Hash the query string.
@@ -100,9 +190,8 @@ bool whisper_message::encode(const std::string & shared_secret)
          * Sign the hash.
          */
         if (
-            whisper::instance().get_ecdhe().sign(
-            reinterpret_cast<const std::uint8_t *> (hash.data()), hash.size(),
-            m_signature)
+            ecdhe_ctx.sign(reinterpret_cast<const std::uint8_t *> (
+            hash.data()), hash.size(), m_signature)
             )
         {
             m_query_string +=
@@ -110,11 +199,6 @@ bool whisper_message::encode(const std::string & shared_secret)
                 reinterpret_cast<const char *> (&m_signature[0]),
                 m_signature.size()))
             ;
-        
-            /**
-             * Set the lifetime.
-             */
-            m_query_string += "&_l=900";
 
             return true;
         }
@@ -123,7 +207,7 @@ bool whisper_message::encode(const std::string & shared_secret)
     return false;
 }
 
-bool whisper_message::decode(const std::string & shared_secret)
+bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
 {
     assert(m_query_string.size());
     
@@ -137,15 +221,239 @@ bool whisper_message::decode(const std::string & shared_secret)
     
     if (pairs_all.size() > 0 && pairs_public.size() > 0)
     {
+        auto it1 = pairs_public.find("id");
+        auto it2 = pairs_public.find("timestamp");
+        auto it3 = pairs_public.find("flags");
+        auto it4 = pairs_public.find("to");
+        auto it5 = pairs_public.find("from");
+        auto it6 = pairs_public.find("text");
+        auto it7 = pairs_public.find("nonce");
+        auto it8 = pairs_public.find("signature");
+        
+        if (
+            it1 != pairs_public.end() && it2 != pairs_public.end() &&
+            it3 != pairs_public.end() && it4 != pairs_public.end() &&
+            it5 != pairs_public.end() && it6 != pairs_public.end() &&
+            it7 != pairs_public.end() && it8 != pairs_public.end()
+            )
+        {
+            /**
+             * Get the tid.
+             */
+            m_tid = static_cast<std::uint32_t> (std::stol(it1->second));
+            
+            /**
+             * Get the to.
+             */
+            auto to = network::uri_decode(it4->second);
+
+            auto uri_decoded_from = network::uri_decode(it5->second);
+            
+            /**
+             * Get the from.
+             */
+            auto from = crypto::base64_decode(
+                uri_decoded_from.data(), uri_decoded_from.size()
+            );
+            
+            auto uri_decoded_text = network::uri_decode(it6->second);
+            
+            /**
+             * Get the text.
+             */
+            m_text = crypto::base64_decode(
+                uri_decoded_text.data(), uri_decoded_text.size()
+            );
+            
+            /**
+             * Get the nonce.
+             */
+            auto nonce = std::stoll(it7->second);
+            
+            /**
+             * Convert nonce to host byte order.
+             */
+            nonce = (std::uint64_t)(((std::uint64_t)htonl(
+                (std::uint32_t)nonce)) << 32) + htonl(nonce >> 32)
+            ;
     
+            auto uri_decoded_signature = network::uri_decode(it8->second);
+            
+            /**
+             * Get the signature.
+             */
+            auto signature = crypto::base64_decode(
+                uri_decoded_signature.data(), uri_decoded_signature.size()
+            );
+            
+            log_debug("Whisper message got id = " << m_tid);
+            log_debug("Whisper message got timestamp = " << it2->second);
+            log_debug("Whisper message got flags = " << it3->second);
+            log_debug("Whisper message got to = " << to);
+            log_debug("Whisper message got from = " << from);
+            log_debug("Whisper message got text = " << m_text);
+            log_debug("Whisper message got nonce = " << nonce);
+            
+            auto shared_secret32 = sha256(
+                &shared_secret[0], shared_secret.size()
+            ).to_string().substr(0, 32);
+
+            /**
+             * Allocate the hc256 context.
+             */
+            hc256 ctx(
+                shared_secret32, shared_secret32,
+                "n5tH9JWEuZuA96wkA747jsp4JLvXDV8j"
+            );
+            
+            /**
+             * Allocate the public key (from).
+             */
+            std::vector<std::uint8_t> public_key(from.begin(), from.end());
+        
+            /**
+             * Set the signature.
+             */
+            m_signature = std::vector<std::uint8_t> (
+                signature.begin(), signature.end()
+            );
+
+            /**
+             * Trim from the signature until the end.
+             */
+            auto offset_signature = m_query_string.find("&signature");
+            
+            /**
+             * Get the query string up to the signature.
+             */
+            auto query_string_signature =
+                m_query_string.substr(0, offset_signature)
+            ;
+
+            /**
+             * Trim from the nonce until the end.
+             */
+            auto offset_nonce = m_query_string.find("&nonce");
+            
+            /**
+             * Get the query string up to the nonce.
+             */
+            auto query_string_nonce = m_query_string.substr(0, offset_nonce);
+            
+            /**
+             * Copy the query string into the nonce buffer for validation.
+             */
+            std::vector<std::uint8_t> nonce_buf(
+                query_string_nonce.begin(), query_string_nonce.end()
+            );
+        
+            /**
+             * Validate the nonce.
+             */
+            if (whisper_pow::validate_nonce(nonce, nonce_buf) == true)
+            {
+                /**
+                 * Hash the query string.
+                 */
+                 auto hash = sha256(
+                    reinterpret_cast<const std::uint8_t *> (
+                    query_string_signature.data()),
+                    query_string_signature.size()
+                ).to_string();
+                
+                if (
+                    ecdhe::verify(reinterpret_cast<const std::uint8_t *> (
+                    hash.data()), hash.size(), public_key,
+                    m_signature) == true
+                    )
+                {
+                    /**
+                     * Decrypt the text.
+                     */
+                    m_text = ctx.decrypt(m_text);
+                    
+                    log_debug(
+                        "Whisper message got text (decrypted) = " << m_text
+                    );
+                
+                    return true;
+                }
+            }
+            else
+            {
+                log_debug(
+                    "Whisper message got failed to validate "
+                    "nonce = " << nonce << "."
+                );
+            }
+        }
+        else
+        {
+            return false;
+        }
     }
     
     return false;
 }
 
-const std::uint64_t & whisper_message::tid() const
+const std::uint32_t & whisper_message::tid() const
 {
     return m_tid;
+}
+
+void whisper_message::set_public_key_recipient(
+    const char * buf, const std::size_t & len
+    )
+{
+    m_public_key_recipient.clear();
+    
+    m_public_key_recipient.insert(
+        m_public_key_recipient.end(), buf,  buf + len
+    );
+}
+
+void whisper_message::set_public_key_sender(
+    const char * buf, const std::size_t & len
+    )
+{
+    m_public_key_sender.clear();
+    
+    m_public_key_sender.insert(
+        m_public_key_sender.end(), buf,  buf + len
+    );
+}
+
+void whisper_message::set_text(const std::string & val)
+{
+    m_text = val;
+}
+
+int whisper_message::run_test()
+{
+    ecdhe ecdhe_a, ecdhe_b;
+
+    ecdhe_a.public_key();
+    ecdhe_b.public_key();
+    
+    whisper_message msg;
+    
+    msg.set_public_key_sender(
+        ecdhe_a.public_key().data(), ecdhe_a.public_key().size()
+    );
+    
+    msg.set_public_key_recipient(
+        ecdhe_b.public_key().data(), ecdhe_b.public_key().size()
+    );
+
+    msg.set_text("Hello World!");
+    
+    auto shared_secret = ecdhe_a.derive_secret_key(ecdhe_b.public_key());
+    
+    msg.encode(ecdhe_a, shared_secret);
+
+    msg.decode(shared_secret);
+    
+    return 0;
 }
 
 void whisper_message::parse_query(

@@ -21,8 +21,62 @@
 #ifndef DARK_WHISPER_POW_HPP
 #define DARK_WHISPER_POW_HPP
 
+#include <cstdint>
+#include <vector>
+
 namespace dark {
 
+    /**
+     * Implements Proof-of-Work.
+     */
+    class whisper_pow
+    {
+        public:
+        
+            /**
+             * The extra work.
+             */
+            enum { extra_work = 18000 };
+        
+            /**
+             * The nonce fudge.
+             */
+            enum { nonce_fudge = 320 };
+            
+            /**
+             * Generates a nonce.
+             * @param val The value.
+             * @param target The target.
+             */
+            static std::uint64_t generate_nonce(
+                const std::vector<std::uint8_t> & val,
+                const std::uint64_t & target
+            );
+    
+            /**
+             * Validates a nonce.
+             * @param nonce The nonce.
+             * @param val The value.
+             */
+            static bool validate_nonce(
+                const std::uint64_t & nonce,
+                const std::vector<std::uint8_t> & val
+            );
+        
+            /**
+             * Runs test case.
+             */
+            static int run_test();
+        
+        private:
+        
+            // ...
+
+        protected:
+        
+            // ...
+    };
+    
 } // namespace dark
 
 #endif // DARK_WHISPER_POW_HPP

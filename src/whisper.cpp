@@ -29,12 +29,28 @@ whisper::whisper()
 
 whisper & whisper::instance()
 {
+    /**
+     * The whisper.
+     */
     static whisper g_whisper;
-            
+
+    /**
+     * The std::mutex.
+     */
+    static std::mutex mutex_;
+    
+    std::lock_guard<std::mutex> l1(mutex_);
+    
     return g_whisper;
 }
 
 ecdhe & whisper::get_ecdhe()
 {
     return m_ecdhe;
+}
+
+std::map<std::string, std::pair<std::time_t, std::vector<std::uint8_t> > > &
+    whisper::ecdhe_shared_secrets()
+{
+    return m_ecdhe_shared_secrets;
 }

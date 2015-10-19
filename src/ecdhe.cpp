@@ -113,11 +113,22 @@ bool ecdhe::sign(
 
 bool ecdhe::verify(
     const std::uint8_t * buf, const std::size_t & len,
-    EC_KEY * ec_key, const std::vector<std::uint8_t> & signature
+    const std::vector<std::uint8_t> & public_key,
+    const std::vector<std::uint8_t> & signature
     )
 {
     bool ret = false;
     
+    auto mem_buf = BIO_new_mem_buf(
+        (void *)public_key.data(), static_cast<int> (public_key.size())
+    );
+
+    auto ec_key = PEM_read_bio_EC_PUBKEY(mem_buf, 0, 0, 0);
+    
+    BIO_free(mem_buf);
+#if 1
+    EC_KEY_print_fp(stdout, ec_key, 2);
+#endif
     assert(ec_key);
     
     if (signature.size() > 0)
@@ -193,17 +204,11 @@ int ecdhe::run_test()
     
     if (success)
     {
-        auto mem_buf = BIO_new_mem_buf(
-            (void *)ecdhe_a.public_key().data(), ecdhe_a.public_key().size()
+        std::vector<std::uint8_t> public_key(
+            ecdhe_a.public_key().begin(), ecdhe_a.public_key().end()
         );
-        
-        #warning :TODO: free BIO_new_mem_buf???
-        
-        auto ec_key = PEM_read_bio_EC_PUBKEY(mem_buf, 0, 0, 0);
-        
-        EC_KEY_print_fp(stdout, ec_key, 2);
 
-        success = ecdhe_b.verify(buf, sizeof(buf), ec_key, signature);
+        success = verify(buf, sizeof(buf), public_key, signature);
         
         if (success)
         {
