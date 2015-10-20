@@ -19,9 +19,12 @@
  */
 
 #include <cassert>
+#include <future>
+#include <thread>
 
 #include <dark/logger.hpp>
 #include <dark/stack_impl.hpp>
+#include <dark/status_manager.hpp>
 #include <dark/whisper.hpp>
 #include <dark/whisper_message.hpp>
 #include <dark/whisper_manager.hpp>
@@ -41,6 +44,31 @@ void whisper_manager::start()
     log_info("Whisper manager generated public key = " << public_key << ".");
     
     assert(public_key.size());
+    
+    /**
+     * Allocate the pairs.
+     */
+    std::map<std::string, std::string> pairs;
+    
+    /**
+     * Set the pairs type.
+     */
+    pairs["type"] = "whisper";
+    
+    /**
+     * Set the pairs value.
+     */
+    pairs["value"] = "public_key";
+    
+    /**
+     * Set the pairs whisper.public_key.
+     */
+    pairs["whisper.public_key"] = public_key;
+    
+    /**
+     * Callback
+     */
+    stack_impl_.get_status_manager()->insert(pairs);
 }
 
 void whisper_manager::stop()
@@ -51,4 +79,74 @@ void whisper_manager::stop()
     }
     
     m_whisper_messages.clear();
+}
+
+void whisper_manager::compose(const std::map<std::string, std::string> & pairs)
+{
+    std::thread([this, pairs]()
+    {
+        std::async(std::launch::async, [this, pairs]()
+        {
+            auto success = false;
+            
+            auto it1 = pairs.find("to");
+            auto it2 = pairs.find("body");
+
+            if (it1 != pairs.end() && it2 != pairs.end())
+            {
+                auto to = it1->second;
+                auto body = it2->second;
+                
+                whisper_message msg;
+                
+                msg.set_public_key_recipient(to.data(), to.size());
+                
+                msg.set_public_key_sender(
+                    whisper::instance().get_ecdhe().public_key().data(),
+                    whisper::instance().get_ecdhe().public_key().size()
+                );
+                msg.set_text(body);
+                
+                auto shared_secret =
+                    whisper::instance().get_ecdhe().derive_secret_key(to)
+                ;
+                
+                success = msg.encode(
+                    whisper::instance().get_ecdhe(), shared_secret
+                );
+            }
+        
+            /**
+             * Allocate the pairs.
+             */
+            std::map<std::string, std::string> pairs;
+            
+            /**
+             * Set the pairs type.
+             */
+            pairs["type"] = "whisper";
+            
+            /**
+             * Set the pairs value.
+             */
+            pairs["value"] = "compose";
+            
+            if (success == true)
+            {
+                pairs["error.code"] = "0";
+                pairs["error.message"] = "success";
+            }
+            else
+            {
+                pairs["error.code"] = "-1";
+                pairs["error.message"] = "failed";
+            }
+            
+            /**
+             * Callback
+             */
+            stack_impl_.get_status_manager()->insert(pairs);
+        });
+    
+    }).detach();
 }

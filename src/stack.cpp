@@ -68,3 +68,16 @@ void stack::stop()
         throw std::runtime_error("Stack is not allocated");
     }
 }
+
+void stack::whisper_compose(const std::map<std::string, std::string> & pairs)
+{
+    if (stack_impl_)
+    {
+        stack_impl_->whisper_compose(pairs);
+    }
+}
+
+void stack::on_status(const std::map<std::string, std::string> & pairs)
+{
+    // ...
+}

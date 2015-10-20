@@ -28,7 +28,7 @@
 #include <dark/hc256.hpp>
 #include <dark/logger.hpp>
 #include <dark/network.hpp>
-#include <dark/sha256.hpp>
+#include <dark/whirlpool.hpp>
 #include <dark/whisper.hpp>
 #include <dark/whisper_message.hpp>
 #include <dark/whisper_pow.hpp>
@@ -93,7 +93,7 @@ bool whisper_message::encode(
             /**
              * Set the to.
              */
-            m_query_string +="&to=" + sha256(&m_public_key_sender[0],
+            m_query_string +="&to=" + whirlpool(&m_public_key_sender[0],
                 m_public_key_sender.size()).to_string()
             ;
         }
@@ -110,7 +110,7 @@ bool whisper_message::encode(
             ;
         }
 
-        auto shared_secret32 = sha256(
+        auto shared_secret32 = whirlpool(
             &shared_secret[0], shared_secret.size()
         ).to_string().substr(0, 32);
 
@@ -181,7 +181,7 @@ bool whisper_message::encode(
         /**
          * Hash the query string.
          */
-         auto hash = sha256(
+         auto hash = whirlpool(
             reinterpret_cast<const std::uint8_t *> (m_query_string.data()),
             m_query_string.size()
         ).to_string();
@@ -294,7 +294,7 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
             log_debug("Whisper message got text = " << m_text);
             log_debug("Whisper message got nonce = " << nonce);
             
-            auto shared_secret32 = sha256(
+            auto shared_secret32 = whirlpool(
                 &shared_secret[0], shared_secret.size()
             ).to_string().substr(0, 32);
 
@@ -355,7 +355,7 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
                 /**
                  * Hash the query string.
                  */
-                 auto hash = sha256(
+                 auto hash = whirlpool(
                     reinterpret_cast<const std::uint8_t *> (
                     query_string_signature.data()),
                     query_string_signature.size()

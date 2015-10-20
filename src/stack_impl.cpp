@@ -24,6 +24,7 @@
 #include <dark/mixer_manager.hpp>
 #include <dark/stack.hpp>
 #include <dark/stack_impl.hpp>
+#include <dark/status_manager.hpp>
 #include <dark/whisper_manager.hpp>
 
 using namespace dark;
@@ -69,6 +70,16 @@ void stack_impl::start(const std::map<std::string, std::string> & args)
      */
     threads_.push_back(thread);
 
+    /**
+     * Allocate the status manager.
+     */
+    m_status_manager.reset(new status_manager(*this));
+    
+    /**
+     * Start the status manager.
+     */
+    m_status_manager->start();
+    
     if (command_line_args["service"] == "mixer")
     {
         /**
@@ -107,6 +118,11 @@ void stack_impl::stop()
         m_whisper_manager->stop();
     }
     
+    if (m_status_manager)
+    {
+        m_status_manager->stop();
+    }
+    
     /**
      * Reset the work.
      */
@@ -140,7 +156,24 @@ void stack_impl::stop()
      */
     threads_.clear();
     
+    m_status_manager.reset();
     m_mixer_manager.reset();
+    m_whisper_manager.reset();
+}
+
+void stack_impl::whisper_compose(
+    const std::map<std::string, std::string> & pairs
+    )
+{
+    if (m_whisper_manager)
+    {
+        m_whisper_manager->compose(pairs);
+    }
+}
+
+void stack_impl::on_status(const std::map<std::string, std::string> & pairs)
+{
+    stack_.on_status(pairs);
 }
 
 void stack_impl::parse_command_line_args(
@@ -184,6 +217,11 @@ boost::asio::io_service & stack_impl::io_service()
 boost::asio::strand & stack_impl::strand()
 {
     return m_strand;
+}
+
+std::shared_ptr<status_manager> & stack_impl::get_status_manager()
+{
+    return m_status_manager;
 }
 
 std::shared_ptr<mixer_manager> & stack_impl::get_mixer_manager()

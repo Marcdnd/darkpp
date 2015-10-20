@@ -21,7 +21,7 @@
 #include <boost/asio.hpp>
 
 #include <dark/logger.hpp>
-#include <dark/sha256.hpp>
+#include <dark/whirlpool.hpp>
 #include <dark/whisper_pow.hpp>
 
 using namespace dark;
@@ -35,10 +35,10 @@ std::uint64_t whisper_pow::generate_nonce(
     
     auto result = std::numeric_limits<std::uint64_t>::max();
     
-    auto hash = sha256(&val[0], val.size());
+    auto hash = whirlpool(&val[0], val.size());
     
     std::vector<std::uint8_t> digest(
-        hash.digest(), hash.digest() + sha256::digest_length
+        &hash.digest()[0], &hash.digest()[0] + whirlpool::digest_length
     );
 
     std::vector<std::uint8_t> buf(sizeof(std::uint64_t) + digest.size());
@@ -58,10 +58,10 @@ std::uint64_t whisper_pow::generate_nonce(
             (std::uint32_t)ret)) << 32) + htonl(ret >> 32)
         );
         
-        auto hash = sha256(&buf[0], buf.size());
+        auto hash = whirlpool(&buf[0], buf.size());
         
         digest = std::vector<std::uint8_t> (
-            hash.digest(), hash.digest() + sha256::digest_length
+            &hash.digest()[0], &hash.digest()[0] + whirlpool::digest_length
         );
         
         std::memcpy(&result, digest.data(), sizeof(std::uint64_t));
@@ -99,7 +99,7 @@ bool whisper_pow::validate_nonce(
             with_nonce.begin() + sizeof(std::uint64_t), with_nonce.end()
         );
         
-        auto target_hash = sha256(&target_buf[0], target_buf.size());
+        auto target_hash = whirlpool(&target_buf[0], target_buf.size());
 
         auto target =
             std::numeric_limits<std::uint64_t>::max() /
@@ -108,16 +108,16 @@ bool whisper_pow::validate_nonce(
         ;
 
         std::vector<std::uint8_t> buf(
-            sizeof(std::uint64_t) + sha256::digest_length
+            sizeof(std::uint64_t) + whirlpool::digest_length
         );
 
         std::memcpy(buf.data(), &nonce, sizeof(std::uint64_t));
         std::memcpy(
-            buf.data() + sizeof(std::uint64_t), target_hash.digest(),
-            sha256::digest_length
+            buf.data() + sizeof(std::uint64_t), &target_hash.digest()[0],
+            whirlpool::digest_length
         );
 
-        auto * digest = sha256(&buf[0], buf.size()).digest();
+        auto * digest = &whirlpool(&buf[0], buf.size()).digest()[0];
         
         result =
             ((((std::uint64_t)ntohl((std::uint32_t)*digest)) << 32) +

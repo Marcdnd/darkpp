@@ -1,0 +1,169 @@
+/*
+ * Copyright (c) 2013-2015 John Connor (BM-NC49AxAjcqVcF5jNPu85Rb8MJ2d9JqZt)
+ *
+ * This file is part of Dark++.
+ *
+ * Dark++ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License with
+ * additional permissions to the one published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version. For more information see LICENSE.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <dark/stack_impl.hpp>
+#include <dark/status_manager.hpp>
+
+using namespace dark;
+
+status_manager::status_manager(stack_impl & owner)
+    : strand_(io_service_)
+    , stack_impl_(owner)
+    , timer_(io_service_)
+{
+    // ...
+}
+
+void status_manager::start()
+{
+    /**
+     * Allocate the boost::asio::io_service::work.
+     */
+    work_.reset(new boost::asio::io_service::work(io_service_));
+    
+    /**
+     * Allocate the std::thread.
+     */
+    thread_ = std::thread(&status_manager::loop, this);
+    
+    /**
+     * Start the timer.
+     */
+    do_tick(interval_callback);
+}
+
+void status_manager::stop()
+{
+    timer_.cancel();
+    pairs_.clear();
+    
+    /**
+     * Reset the work.
+     */
+    work_.reset();
+    
+    try
+    {
+        if (thread_.joinable())
+        {
+            thread_.join();
+        }
+    }
+    catch (std::exception & e)
+    {
+        // ...
+    }
+}
+
+void status_manager::insert(const std::map<std::string, std::string> & pairs)
+{
+#if (defined __linux__)
+    /**
+     * Ignore status updates on linux (until there is a UI).
+     */
+#else
+    std::lock_guard<std::mutex> l1(mutex_);
+    
+    io_service_.post(strand_.wrap(
+        [this, pairs]()
+    {
+        pairs_.push_back(pairs);
+    }));
+#endif // __linux__
+}
+
+void status_manager::do_tick(const std::uint32_t & interval)
+{
+    auto self(shared_from_this());
+    
+    timer_.expires_from_now(std::chrono::milliseconds(interval));
+    timer_.async_wait(strand_.wrap([this, self, interval]
+        (boost::system::error_code ec)
+    {
+        if (ec)
+        {
+            // ...
+        }
+        else
+        {
+            std::lock_guard<std::mutex> l1(mutex_);
+
+            if (pairs_.size() > 0)
+            {
+                /**
+                 * Get the pairs at the front.
+                 */
+                const auto & pairs = pairs_.front();
+                
+                /**
+                 * Callback the pairs.
+                 */
+                stack_impl_.on_status(pairs);
+                
+                /**
+                 * Erase the pairs at the front.
+                 */
+                pairs_.erase(pairs_.begin());
+
+                if (pairs_.size() > 0)
+                {
+                    /**
+                     * Start the timer.
+                     */
+                    do_tick(interval_callback);
+                }
+                else
+                {
+                    /**
+                     * Start the timer.
+                     */
+                    do_tick(1000);
+                }
+            }
+            else
+            {
+                /**
+                 * Start the timer.
+                 */
+                do_tick(1000);
+            }
+        }
+    }));
+}
+
+void status_manager::loop()
+{
+    while (work_)
+    {
+        try
+        {
+            io_service_.run();
+            
+            if (work_ == 0)
+            {
+                break;
+            }
+        }
+        catch (const boost::system::system_error & e)
+        {
+            // ...
+        }
+    }
+}
