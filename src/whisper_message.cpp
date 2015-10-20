@@ -72,21 +72,21 @@ bool whisper_message::encode(
         /**
          * Set the id.
          */
-        m_query_string = "id=" + std::to_string(m_tid);
+        m_query_string = "__id=" + std::to_string(m_tid);
         
         m_timestamp = std::time(0);
         
         /**
          * Set the timestamp.
          */
-        m_query_string += "&timestamp=" + std::to_string(m_timestamp);
+        m_query_string += "&__timestamp=" + std::to_string(m_timestamp);
         
         m_flags = 0;
         
         /**
          * Set the flags.
          */
-        m_query_string += "&flags=" + std::to_string(m_flags);
+        m_query_string += "&__flags=" + std::to_string(m_flags);
         
         if (m_public_key_recipient.size() > 0)
         {
@@ -104,7 +104,7 @@ bool whisper_message::encode(
              * Set the sender.
              */
             m_query_string +=
-                "&from=" + network::uri_encode(crypto::base64_encode(
+                "&__from=" + network::uri_encode(crypto::base64_encode(
                 reinterpret_cast<const char *> (&m_public_key_sender[0]),
                 m_public_key_sender.size()))
             ;
@@ -123,17 +123,17 @@ bool whisper_message::encode(
         );
         
         /**
-         * Encrypt the text.
+         * Encrypt the body.
          */
-        auto encrypted = ctx.encrypt(m_text);
+        auto encrypted = ctx.encrypt(m_body);
 
         if (encrypted.size() > 0)
         {
             /**
-             * Set the text.
+             * Set the body.
              */
             m_query_string +=
-                "&text=" + network::uri_encode(
+                "&__body=" + network::uri_encode(
                 crypto::base64_encode(encrypted.data(), encrypted.size()))
             ;
         }
@@ -171,7 +171,7 @@ bool whisper_message::encode(
         /**
          * Set the nonce.
          */
-        m_query_string += "&nonce=" + std::to_string(nonce);
+        m_query_string += "&__nonce=" + std::to_string(nonce);
         
         /**
          * Set the lifetime.
@@ -195,7 +195,7 @@ bool whisper_message::encode(
             )
         {
             m_query_string +=
-                "&signature=" + network::uri_encode(crypto::base64_encode(
+                "&__signature=" + network::uri_encode(crypto::base64_encode(
                 reinterpret_cast<const char *> (&m_signature[0]),
                 m_signature.size()))
             ;
@@ -211,9 +211,6 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
 {
     assert(m_query_string.size());
     
-    /**
-     * :TODO:
-     */
     std::map<std::string, std::string> pairs_all;
     std::map<std::string, std::string> pairs_public;
     
@@ -221,14 +218,14 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
     
     if (pairs_all.size() > 0 && pairs_public.size() > 0)
     {
-        auto it1 = pairs_public.find("id");
-        auto it2 = pairs_public.find("timestamp");
-        auto it3 = pairs_public.find("flags");
+        auto it1 = pairs_all.find("__id");
+        auto it2 = pairs_all.find("__timestamp");
+        auto it3 = pairs_all.find("__flags");
         auto it4 = pairs_public.find("to");
-        auto it5 = pairs_public.find("from");
-        auto it6 = pairs_public.find("text");
-        auto it7 = pairs_public.find("nonce");
-        auto it8 = pairs_public.find("signature");
+        auto it5 = pairs_all.find("__from");
+        auto it6 = pairs_all.find("__body");
+        auto it7 = pairs_all.find("__nonce");
+        auto it8 = pairs_all.find("__signature");
         
         if (
             it1 != pairs_public.end() && it2 != pairs_public.end() &&
@@ -245,23 +242,23 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
             /**
              * Get the to.
              */
-            auto to = network::uri_decode(it4->second);
+            m_to = network::uri_decode(it4->second);
 
             auto uri_decoded_from = network::uri_decode(it5->second);
             
             /**
              * Get the from.
              */
-            auto from = crypto::base64_decode(
+            m_from = crypto::base64_decode(
                 uri_decoded_from.data(), uri_decoded_from.size()
             );
             
             auto uri_decoded_text = network::uri_decode(it6->second);
             
             /**
-             * Get the text.
+             * Get the body.
              */
-            m_text = crypto::base64_decode(
+            m_body = crypto::base64_decode(
                 uri_decoded_text.data(), uri_decoded_text.size()
             );
             
@@ -286,13 +283,13 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
                 uri_decoded_signature.data(), uri_decoded_signature.size()
             );
             
-            log_debug("Whisper message got id = " << m_tid);
-            log_debug("Whisper message got timestamp = " << it2->second);
-            log_debug("Whisper message got flags = " << it3->second);
-            log_debug("Whisper message got to = " << to);
-            log_debug("Whisper message got from = " << from);
-            log_debug("Whisper message got text = " << m_text);
-            log_debug("Whisper message got nonce = " << nonce);
+            log_debug("Whisper message got __id = " << m_tid);
+            log_debug("Whisper message got __timestamp = " << it2->second);
+            log_debug("Whisper message got __flags = " << it3->second);
+            log_debug("Whisper message got to = " << m_to);
+            log_debug("Whisper message got __from = " << m_from);
+            log_debug("Whisper message got __body = " << m_body);
+            log_debug("Whisper message got __nonce = " << nonce);
             
             auto shared_secret32 = whirlpool(
                 &shared_secret[0], shared_secret.size()
@@ -309,7 +306,7 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
             /**
              * Allocate the public key (from).
              */
-            std::vector<std::uint8_t> public_key(from.begin(), from.end());
+            std::vector<std::uint8_t> public_key(m_from.begin(), m_from.end());
         
             /**
              * Set the signature.
@@ -321,7 +318,7 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
             /**
              * Trim from the signature until the end.
              */
-            auto offset_signature = m_query_string.find("&signature");
+            auto offset_signature = m_query_string.find("&__signature");
             
             /**
              * Get the query string up to the signature.
@@ -333,7 +330,7 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
             /**
              * Trim from the nonce until the end.
              */
-            auto offset_nonce = m_query_string.find("&nonce");
+            auto offset_nonce = m_query_string.find("&__nonce");
             
             /**
              * Get the query string up to the nonce.
@@ -368,12 +365,12 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
                     )
                 {
                     /**
-                     * Decrypt the text.
+                     * Decrypt the body.
                      */
-                    m_text = ctx.decrypt(m_text);
+                    m_body = ctx.decrypt(m_body);
                     
                     log_debug(
-                        "Whisper message got text (decrypted) = " << m_text
+                        "Whisper message got body (decrypted) = " << m_body
                     );
                 
                     return true;
@@ -425,7 +422,7 @@ void whisper_message::set_public_key_sender(
 
 void whisper_message::set_text(const std::string & val)
 {
-    m_text = val;
+    m_body = val;
 }
 
 int whisper_message::run_test()

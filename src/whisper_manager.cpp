@@ -90,30 +90,43 @@ void whisper_manager::compose(const std::map<std::string, std::string> & pairs)
             auto success = false;
             
             auto it1 = pairs.find("to");
-            auto it2 = pairs.find("body");
+            auto it2 = pairs.find("__body");
 
             if (it1 != pairs.end() && it2 != pairs.end())
             {
                 auto to = it1->second;
                 auto body = it2->second;
                 
-                whisper_message msg;
-                
-                msg.set_public_key_recipient(to.data(), to.size());
-                
-                msg.set_public_key_sender(
-                    whisper::instance().get_ecdhe().public_key().data(),
-                    whisper::instance().get_ecdhe().public_key().size()
-                );
-                msg.set_text(body);
-                
-                auto shared_secret =
-                    whisper::instance().get_ecdhe().derive_secret_key(to)
-                ;
-                
-                success = msg.encode(
-                    whisper::instance().get_ecdhe(), shared_secret
-                );
+                if (
+                    to.find("-----BEGIN PUBLIC KEY-----")
+                    != std::string::npos &&
+                    to.find("-----END PUBLIC KEY-----")
+                    != std::string::npos
+                    )
+                {
+                    whisper_message msg;
+                    
+                    msg.set_public_key_recipient(to.data(), to.size());
+                    
+                    msg.set_public_key_sender(
+                        whisper::instance().get_ecdhe().public_key().data(),
+                        whisper::instance().get_ecdhe().public_key().size()
+                    );
+                    msg.set_text(body);
+                    
+                    auto shared_secret =
+                        whisper::instance().get_ecdhe().derive_secret_key(to)
+                    ;
+                    
+                    success = msg.encode(
+                        whisper::instance().get_ecdhe(), shared_secret
+                    );
+                    
+                    if (success == true)
+                    {
+                        // :TODO: Store the query.
+                    }
+                }
             }
         
             /**
