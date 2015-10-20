@@ -119,6 +119,16 @@ namespace dark {
             std::uint32_t m_tid;
         
             /**
+             * The to.
+             */
+            std::string m_to;
+        
+            /**
+             * The from.
+             */
+            std::string m_from;
+        
+            /**
              * The timestamp (encoded in network byte order).
              */
             std::int64_t m_timestamp;
@@ -139,9 +149,9 @@ namespace dark {
             std::vector<std::uint8_t> m_public_key_sender;
         
             /**
-             * The text.
+             * The body.
              */
-            std::string m_text;
+            std::string m_body;
         
             /**
              * The signature.
