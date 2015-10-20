@@ -30,6 +30,7 @@
 namespace dark {
     
     class stack;
+    class status_manager;
     class mixer_manager;
     class whisper_manager;
     
@@ -60,6 +61,14 @@ namespace dark {
             void stop();
         
             /**
+             * Composes a whisper message.
+             * @param pairs The pairs.
+             */
+            void whisper_compose(
+                const std::map<std::string, std::string> & pairs
+            );
+            
+            /**
              * The boost::asio::io_service.
              */
             boost::asio::io_service & io_service();
@@ -70,11 +79,29 @@ namespace dark {
             boost::asio::strand & strand();
         
             /**
+             * The status_manager.
+             */
+            std::shared_ptr<status_manager> & get_status_manager();
+        
+            /**
              * The mixer_manager.
              */
             std::shared_ptr<mixer_manager> & get_mixer_manager();
         
+            /**
+             * Called when a status update occurs.
+             * @param pairs The key/value pairs.
+             */
+            virtual void on_status(
+                const std::map<std::string, std::string> & pairs
+            );
+            
         private:
+        
+            /**
+             * The status_manager.
+             */
+            std::shared_ptr<status_manager> m_status_manager;
         
             /**
              * The mixer_manager.

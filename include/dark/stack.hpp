@@ -54,6 +54,22 @@ namespace dark {
              */
             void stop();
         
+            /**
+             * Composes a whisper message.
+             * @param pairs The pairs.
+             */
+            void whisper_compose(
+                const std::map<std::string, std::string> & pairs
+            );
+        
+            /**
+             * Called when a status update occurs.
+             * @param pairs The key/value pairs.
+             */
+            virtual void on_status(
+                const std::map<std::string, std::string> & pairs
+            );
+            
         private:
         
             // ...

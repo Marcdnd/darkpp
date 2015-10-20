@@ -53,6 +53,12 @@ namespace dark {
              */
             void stop();
         
+            /**
+             * Composes a message.
+             * @param pairs The pairs.
+             */
+            void compose(const std::map<std::string, std::string> & pairs);
+        
         private:
         
             /**
