@@ -240,6 +240,11 @@ bool whisper_message::decode(const std::vector<std::uint8_t> & shared_secret)
             m_tid = static_cast<std::uint32_t> (std::stol(it1->second));
             
             /**
+             * Get the timestamp.
+             */
+            m_timestamp = std::stoll(it2->second);
+            
+            /**
              * Get the to.
              */
             m_to = network::uri_decode(it4->second);
@@ -398,6 +403,16 @@ const std::uint32_t & whisper_message::tid() const
     return m_tid;
 }
 
+const std::string & whisper_message::from() const
+{
+    return m_from;
+}
+
+const std::int64_t & whisper_message::timestamp() const
+{
+    return m_timestamp;
+}
+
 void whisper_message::set_public_key_recipient(
     const char * buf, const std::size_t & len
     )
@@ -423,6 +438,16 @@ void whisper_message::set_public_key_sender(
 void whisper_message::set_text(const std::string & val)
 {
     m_body = val;
+}
+
+const std::string & whisper_message::body() const
+{
+    return m_body;
+}
+
+const std::string & whisper_message::query_string() const
+{
+    return m_query_string;
 }
 
 int whisper_message::run_test()

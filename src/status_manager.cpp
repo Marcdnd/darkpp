@@ -74,11 +74,6 @@ void status_manager::stop()
 
 void status_manager::insert(const std::map<std::string, std::string> & pairs)
 {
-#if (defined __linux__)
-    /**
-     * Ignore status updates on linux (until there is a UI).
-     */
-#else
     std::lock_guard<std::mutex> l1(mutex_);
     
     io_service_.post(strand_.wrap(
@@ -86,7 +81,6 @@ void status_manager::insert(const std::map<std::string, std::string> & pairs)
     {
         pairs_.push_back(pairs);
     }));
-#endif // __linux__
 }
 
 void status_manager::do_tick(const std::uint32_t & interval)

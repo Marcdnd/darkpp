@@ -88,8 +88,8 @@ bool ecdhe::sign(
     std::vector<std::uint8_t> & signature
     )
 {
-    auto ec_key = EVP_PKEY_get1_EC_KEY(m_ecdhe->privkey);
-    
+    auto * ec_key = EVP_PKEY_get1_EC_KEY(m_ecdhe->privkey);
+
     assert(ec_key);
     
     unsigned int size = ECDSA_size(ec_key);
