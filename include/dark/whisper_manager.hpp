@@ -21,9 +21,15 @@
 #ifndef DARK_WHISPER_MANAGER_HPP
 #define DARK_WHISPER_MANAGER_HPP
 
+#include <chrono>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
+
+#include <database/stack.hpp>
+
+#include <dark/whirlpool.hpp>
 
 namespace dark {
 
@@ -33,7 +39,7 @@ namespace dark {
     /**
      * Implements a whisper manager.
      */
-    class whisper_manager
+    class whisper_manager : public database::stack
     {
         public:
         
@@ -59,6 +65,16 @@ namespace dark {
              */
             void compose(const std::map<std::string, std::string> & pairs);
         
+            /**
+             * Called when a search result is received.
+             * @param transaction_id The transaction id.
+             * @param query The query.
+             */
+            virtual void on_find(
+                const std::uint16_t & transaction_id,
+                const std::string & query
+            );
+            
         private:
         
             /**
@@ -70,12 +86,35 @@ namespace dark {
                 m_whisper_messages
             ;
         
+            /**
+             * The hash of our public key.
+             */
+            whirlpool m_hash_public_key;
+        
         protected:
+        
+            /**
+             * The tick handler.
+             * @param interval The interval.
+             */
+            void do_tick(const std::uint32_t & interval);
         
             /**
              * The stack_impl.
              */
             stack_impl & stack_impl_;
+        
+            /**
+             * The timer.
+             */
+            boost::asio::basic_waitable_timer<
+                std::chrono::steady_clock
+            > timer_;
+        
+            /**
+             * The transacation id's used to prevent duplicate messages.
+             */
+            std::set<std::uint32_t> m_tids;
     };
     
 } // namespace dark

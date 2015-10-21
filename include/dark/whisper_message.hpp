@@ -71,6 +71,16 @@ namespace dark {
             const std::uint32_t & tid() const;
         
             /**
+             * The from.
+             */
+            const std::string & from() const;
+        
+            /**
+             * The timestamp.
+             */
+            const std::int64_t & timestamp() const;
+
+            /**
              * Sets the public key of the recipient.
              * @param buf The buffer.
              * @param len The length.
@@ -93,6 +103,16 @@ namespace dark {
              * @pram val The value.
              */
             void set_text(const std::string & val);
+        
+            /**
+             * The body.
+             */
+            const std::string & body() const;
+        
+            /**
+             * The encoded query string.
+             */
+            const std::string & query_string() const;
         
             /**
              * Runs test case.
@@ -129,12 +149,12 @@ namespace dark {
             std::string m_from;
         
             /**
-             * The timestamp (encoded in network byte order).
+             * The timestamp.
              */
             std::int64_t m_timestamp;
         
             /**
-             * The flags (encoded in network byte order).
+             * The flags.
              */
             std::uint64_t m_flags;
         
