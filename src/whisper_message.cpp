@@ -93,8 +93,8 @@ bool whisper_message::encode(
             /**
              * Set the to.
              */
-            m_query_string +="&to=" + whirlpool(&m_public_key_sender[0],
-                m_public_key_sender.size()).to_string()
+            m_query_string +="&to=" + whirlpool(&m_public_key_recipient[0],
+                m_public_key_recipient.size()).to_string()
             ;
         }
         

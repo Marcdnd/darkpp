@@ -103,14 +103,13 @@ void whisper_manager::start()
     /**
      * Set the port.
      */
-    stack_config.set_port(3333);
+    stack_config.set_port(0);
     
     /**
      * Set the operation mode.
      */
     stack_config.set_operation_mode(
-        //database::stack::configuration::operation_mode_interface
-        database::stack::configuration::operation_mode_storage
+        database::stack::configuration::operation_mode_interface
     );
     
     /**
