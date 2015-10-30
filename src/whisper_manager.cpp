@@ -44,14 +44,17 @@ void whisper_manager::start()
 {
     auto public_key = whisper::instance().get_ecdhe().public_key();
     
+    /**
+     * Hash the public key.
+     */
     m_hash_public_key = whirlpool(
         reinterpret_cast<const std::uint8_t *> (
         public_key.data()), public_key.size()
     );
     
     log_info(
-        "Whisper manager generated public key = \n" << public_key <<
-        "\n" << m_hash_public_key.to_string() << "."
+        "Whisper manager generated identity = " <<
+        m_hash_public_key.to_string() << "."
     );
     
     assert(public_key.size());

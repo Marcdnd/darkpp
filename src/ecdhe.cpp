@@ -29,13 +29,56 @@ extern "C" {
 #endif // __cplusplus
 
 #include <dark/ecdhe.hpp>
+#include <dark/logger.hpp>
 
 using namespace dark;
 
 ecdhe::ecdhe()
     : m_ecdhe(EC_DHE_new(NID_secp256k1))
 {
-    // ...
+    int len = 0;
+    
+    /**
+     * Try to read the keys from disk.
+     */
+    auto * buf = EC_DHE_readKeys(m_ecdhe, &len);
+    
+    m_public_key = std::string(buf, len);
+    
+    /**
+     * If the public key is empty it means we did not have one on disk and
+     * need to generate them for the first time.
+     */
+    if (m_public_key.size() == 0)
+    {
+        /**
+         * Generate the keys.
+         */
+        public_key();
+        
+        log_info(
+            "ECDHE failed to read keys from disk, generated = " <<
+            m_public_key << ", saving to disk."
+        );
+        
+        /**
+         * Write the keys to disk.
+         */
+        if (EC_DHE_writeKeys(m_ecdhe) != 1)
+        {
+            log_error("ECDHE failed to EC_DHE_writeKeys.");
+        }
+        else
+        {
+            log_info("ECDHE wrote keys to disk.");
+        }
+    }
+    else
+    {
+        log_info(
+            "ECDHE read keys from disk, key = " << m_public_key << "."
+        );
+    }
 }
 
 ecdhe::~ecdhe()
@@ -52,7 +95,7 @@ const std::string & ecdhe::public_key()
     {
         auto len = 0;
         
-        auto buf = EC_DHE_getPublicKey(m_ecdhe, &len);
+        auto * buf = EC_DHE_getPublicKey(m_ecdhe, &len);
         
         m_public_key = std::string(buf, len);
     }

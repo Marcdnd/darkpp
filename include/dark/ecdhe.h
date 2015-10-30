@@ -30,6 +30,7 @@ extern "C" {
 
 #include <openssl/evp.h>
 #include <openssl/ec.h>
+#include <openssl/err.h>
 #include <openssl/pem.h>
 #ifdef __cplusplus
 }
@@ -156,6 +157,7 @@ static char * EC_DHE_getPublicKey(EC_DHE * ec_dhe, int * public_key_len)
 	if (!EVP_PKEY_paramgen(ec_dhe->ctx_params, &ec_dhe->params))
     {
         EC_DHE_handleErrors("Could not create parameter object parameters.");
+        
         return 0;
     }
     
@@ -168,7 +170,6 @@ static char * EC_DHE_getPublicKey(EC_DHE * ec_dhe, int * public_key_len)
         return 0;
     }
     
-	
 	if (1 != EVP_PKEY_keygen_init(ec_dhe->ctx_keygen))
     {
         EC_DHE_handleErrors("Could not init context for key generation.");
@@ -182,9 +183,9 @@ static char * EC_DHE_getPublicKey(EC_DHE * ec_dhe, int * public_key_len)
         
         return 0;
     }
-
+    
     BIO * bp = BIO_new(BIO_s_mem());
-
+    
     if (1 != PEM_write_bio_PUBKEY(bp, ec_dhe->privkey))
     {
         EC_DHE_handleErrors("Could not write public key to memory");
@@ -205,6 +206,208 @@ static char * EC_DHE_getPublicKey(EC_DHE * ec_dhe, int * public_key_len)
     BIO_free(bp);
     
     return ec_dhe->public_key;
+}
+
+/**
+ * EC_DHE_readKeys
+ * @param ecdhe The EC_DHE.
+ * @param public_key_len The public key length.
+ */
+static char * EC_DHE_readKeys(EC_DHE * ec_dhe, int * public_key_len)
+{
+	if (0 == (ec_dhe->ctx_params = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, 0)))
+    {
+        EC_DHE_handleErrors("Could not create EC_DHE contexts.");
+        
+        return 0;
+    }
+    
+	if (1 != EVP_PKEY_paramgen_init(ec_dhe->ctx_params))
+    {
+        EC_DHE_handleErrors("Could not intialize parameter generation.");
+        
+        return 0;
+    }
+    
+	if (
+        1 != EVP_PKEY_CTX_set_ec_paramgen_curve_nid(
+        ec_dhe->ctx_params, ec_dhe->EC_NID)
+        )
+    {
+        EC_DHE_handleErrors("Likely unknown elliptical curve ID specified.");
+        
+        return 0;
+    }
+    
+	if (!EVP_PKEY_paramgen(ec_dhe->ctx_params, &ec_dhe->params))
+    {
+        EC_DHE_handleErrors("Could not create parameter object parameters.");
+        
+        return 0;
+    }
+    
+    FILE * fp = 0;
+    
+    const char * params_pem = "ecdhe_params.pem";
+    const char * priv_pem = "ecdhe_keys.pem";
+
+    /**
+     * Open the params.
+     */
+    if (!(fp = fopen(params_pem, "r")))
+    {
+        return 0;
+    }
+    else
+    {
+        BIO * bp = BIO_new_fp(fp, 0);
+        
+        /**
+         * Read the params.
+         */
+        if (!PEM_read_bio_Parameters(bp, &ec_dhe->privkey))
+        {
+            EC_DHE_handleErrors("Read params failed.");
+            
+            BIO_free(bp);
+                
+            fclose(fp);
+            
+            return 0;
+        }
+        else
+        {
+            ENGINE * e = 0;
+            
+            ec_dhe->ctx_keygen = EVP_PKEY_CTX_new(ec_dhe->privkey, e);
+
+            /**
+             * Init the key generator.
+             */
+            if (!EVP_PKEY_keygen_init(ec_dhe->ctx_keygen))
+            {
+                EC_DHE_handleErrors("EVP_PKEY_keygen_init failed.");
+                
+                BIO_free(bp);
+                
+                fclose(fp);
+        
+                return 0;
+            }
+        }
+        
+        BIO_free(bp);
+        
+        fclose(fp);
+    }
+
+    /**
+     * Open the private key.
+     */
+    if (!(fp = fopen(priv_pem, "r")))
+    {
+        return 0;
+    }
+    else
+    {
+        /**
+         * Read the PEM formatted private key.
+         */
+        PEM_read_PrivateKey(fp, &ec_dhe->privkey, 0, 0);
+        
+        if (ec_dhe->privkey)
+        {
+            // ...
+        }
+        else
+        {
+            fclose(fp);
+            
+            return 0;
+        }
+    }
+    
+    fclose(fp);
+
+    BIO * bp = BIO_new(BIO_s_mem());
+    
+    /**
+     * Write the public key portion to return.
+     */
+    if (1 != PEM_write_bio_PUBKEY(bp, ec_dhe->privkey))
+    {
+        EC_DHE_handleErrors("Could not write public key to memory");
+        
+        return 0;
+    }
+    
+    BUF_MEM * bptr;
+
+    BIO_get_mem_ptr(bp, &bptr);
+
+    ec_dhe->public_key = (char *)calloc(1, bptr->length);
+    
+    memcpy(ec_dhe->public_key, bptr->data, bptr->length);
+    
+    (*public_key_len) = (int)bptr->length;
+    
+    BIO_free(bp);
+    
+    return ec_dhe->public_key;
+}
+
+/**
+ * EC_DHE_writeKeys
+ * @param ecdhe The EC_DHE.
+ * @param public_key_len The public key length.
+ */
+static int EC_DHE_writeKeys(EC_DHE * ec_dhe)
+{
+    FILE * fp = 0;
+    
+    /**
+     * :TODO: These path variables must be passed into the function.
+     */
+    const char * params_pem = "ecdhe_params.pem";
+    const char * priv_pem = "ecdhe_keys.pem";
+    
+    if (!(fp = fopen(params_pem, "wt")))
+    {
+        return 0;
+    }
+    else
+    {
+        BIO * bp = BIO_new_fp(fp, 0);
+        
+        /**
+         * Write the params.
+         */
+        if (!PEM_write_bio_Parameters(bp, ec_dhe->privkey))
+        {
+            return 0;
+        }
+        
+        BIO_free(bp);
+        
+        fclose(fp);
+    }
+    
+    if (!(fp = fopen(priv_pem, "wt")))
+    {
+        return 0;
+    }
+    
+    /**
+     * Write the keys.
+     */
+    if (!PEM_write_PrivateKey(fp, ec_dhe->privkey, 0, 0, 0, 0, 0))
+    {
+        return 0;
+    }
+    
+    fclose(fp);
+    
+    return 1;
 }
 
 /**
@@ -287,6 +490,12 @@ static unsigned char * EC_DHE_deriveSecretKey(
         )
     {
         EC_DHE_handleErrors("Could not dervive the shared secret");
+        
+        BIO * bio_error = BIO_new_fp(stdout, BIO_NOCLOSE);
+        
+        ERR_print_errors(bio_error);
+        
+        BIO_free(bio_error), bio_error = 0;
         
         return 0;
     }
